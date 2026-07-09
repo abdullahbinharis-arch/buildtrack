@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuildTrack — Construction Expense Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a',
+            },
+            accent: {
+              50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
+              400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d',
+              800: '#166534', 900: '#14532d',
+            },
+            surface: '#f8fafc',
+            ink: '#0f172a',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+          },
+          boxShadow: {
+            soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+            card: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+            elevated: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05)',
+            glass: '0 8px 32px -8px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04)',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-surface text-ink antialiased min-h-screen">
+  <div id="app">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 border-b border-white/70 bg-white/55 backdrop-blur-xl shadow-glass">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div class="flex cursor-pointer items-center gap-3" onclick="app.showDashboard()">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-xl text-brand-600">🏗️</div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight text-slate-900">BuildTrack</h1>
+            <p class="text-xs text-slate-500">Construction Expense Tracker</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="inline-flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition hover:bg-white" onclick="app.exportAll()">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export All
+          </button>
+          <button class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-700" onclick="app.showNewProjectModal()">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Project
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <!-- Dashboard View -->
+      <div id="dashboard-view" class="view active space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Projects Dashboard</h2>
+          <p class="mt-1 text-sm text-slate-500">Track payments, expenses, and profitability across all sites</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" id="stats-grid">
+          <div class="rounded-2xl border border-white/70 bg-white/55 p-5 shadow-glass backdrop-blur-xl">
+            <div class="flex items-center gap-4">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-slate-500">Active Projects</p>
+                <p class="text-2xl font-bold text-slate-900" id="stat-projects">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/55 p-5 shadow-glass backdrop-blur-xl">
+            <div class="flex items-center gap-4">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-slate-500">Total Revenue</p>
+                <p class="text-2xl font-bold text-emerald-600" id="stat-revenue">₹0</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/55 p-5 shadow-glass backdrop-blur-xl">
+            <div class="flex items-center gap-4">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-slate-500">Total Expenses</p>
+                <p class="text-2xl font-bold text-rose-600" id="stat-expenses">₹0</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/55 p-5 shadow-glass backdrop-blur-xl">
+            <div class="flex items-center gap-4">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-slate-500">Net Profit</p>
+                <p class="text-2xl font-bold text-slate-900" id="stat-profit">₹0</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" id="projects-grid"></div>
+      </div>
+
+      <!-- Project Detail View -->
+      <div id="project-view" class="view space-y-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-start gap-3">
+            <button class="mt-1 flex h-9 w-9 items-center justify-center rounded-xl bg-white/60 text-slate-500 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition hover:bg-white hover:text-slate-700" onclick="app.showDashboard()" title="Back">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            </button>
+            <div>
+              <h2 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl" id="project-name">Project Name</h2>
+              <div class="mt-2 flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600" id="project-location">📍 Location</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" id="project-status">Active</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="inline-flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition hover:bg-white" onclick="app.exportProject()">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+            <button class="inline-flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 ring-1 ring-rose-100 transition hover:bg-rose-100" onclick="app.deleteProject()">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Financial Summary Bar -->
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7" id="financial-summary">
+          <div class="rounded-2xl border border-white/70 bg-white/50 p-4 text-center shadow-soft backdrop-blur-xl">
+            <p class="text-xs font-medium text-slate-500">Contract Value</p>
+            <p class="mt-1 text-lg font-bold text-slate-900" id="fin-contract">₹0</p>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/50 p-4 text-center shadow-soft backdrop-blur-xl">
+            <p class="text-xs font-medium text-slate-500">Received</p>
+            <p class="mt-1 text-lg font-bold text-emerald-600" id="fin-received">₹0</p>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/50 p-4 text-center shadow-soft backdrop-blur-xl">
+            <p class="text-xs font-medium text-slate-500">Subcontractor</p>
+            <p class="mt-1 text-lg font-bold text-rose-600" id="fin-sub">₹0</p>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/50 p-4 text-center shadow-soft backdrop-blur-xl">
+            <p class="text-xs font-medium text-slate-500">Site Expenses</p>
+            <p class="mt-1 text-lg font-bold text-rose-600" id="fin-expenses">₹0</p>
+          </div>
+          <div class="rounded-2xl border border-brand-200 bg-brand-50/60 p-4 text-center shadow-soft backdrop-blur-xl">
+            <p class="text-xs font-medium text-brand-700">Total Cost</p>
+            <p class="mt-1 text-lg font-bold text-rose-600" id="fin-total-cost">₹0</p>
+          </div>
+          <div class="rounded-2xl border border-brand-200 bg-brand-50/60 p-4 text-center shadow-soft backdrop-blur-xl">
+            <p class="text-xs font-medium text-brand-700">Profit / Loss</p>
+            <p class="mt-1 text-lg font-bold text-slate-900" id="fin-profit">₹0</p>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/50 p-4 text-center shadow-soft backdrop-blur-xl">
+            <p class="text-xs font-medium text-slate-500">Remaining</p>
+            <p class="mt-1 text-lg font-bold text-slate-900" id="fin-remaining">₹0</p>
+          </div>
+        </div>
+
+        <!-- Cost Split Chart -->
+        <div id="cost-split-chart" class="flex flex-col gap-4 sm:flex-row sm:items-center"></div>
+
+        <!-- Tabs -->
+        <div class="flex flex-wrap gap-2 border-b border-white/70 pb-2" id="tabs">
+          <button class="tab-btn rounded-full px-4 py-2 text-sm font-medium transition" data-tab="owner" onclick="app.switchTab('owner')">💰 Owner Payments</button>
+          <button class="tab-btn rounded-full px-4 py-2 text-sm font-medium transition" data-tab="subcontractor" onclick="app.switchTab('subcontractor')">👷 Subcontractor Payments</button>
+          <button class="tab-btn rounded-full px-4 py-2 text-sm font-medium transition" data-tab="expenses" onclick="app.switchTab('expenses')">🧱 Site Expenses</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content space-y-6">
+          <!-- Owner Payments Tab -->
+          <div id="tab-owner" class="tab-panel active space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Owner Payments Received</h3>
+              <button class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-700" onclick="app.showModal('transaction'); app.setupTransactionForm('owner')">+ Add Payment</button>
+            </div>
+            <div class="table-wrapper overflow-hidden rounded-2xl border border-white/70 bg-white/50 backdrop-blur-xl">
+              <table class="data-table min-w-full">
+                <thead>
+                  <tr><th>Date</th><th>Amount</th><th>Notes</th><th class="text-right">Actions</th></tr>
+                </thead>
+                <tbody id="owner-table-body"></tbody>
+                <tfoot>
+                  <tr class="total-row bg-white/60"><td colspan="2"><strong>Total</strong></td><td colspan="2" class="text-right font-bold text-slate-900" id="owner-total">₹0</td></tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Subcontractor Payments Tab -->
+          <div id="tab-subcontractor" class="tab-panel space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Subcontractor Payments</h3>
+              <button class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-700" onclick="app.showModal('transaction'); app.setupTransactionForm('subcontractor')">+ Add Payment</button>
+            </div>
+            <div class="table-wrapper overflow-hidden rounded-2xl border border-white/70 bg-white/50 backdrop-blur-xl">
+              <table class="data-table min-w-full">
+                <thead>
+                  <tr><th>Date</th><th>Subcontractor</th><th>Type</th><th>Amount</th><th>Notes</th><th class="text-right">Actions</th></tr>
+                </thead>
+                <tbody id="subcontractor-table-body"></tbody>
+                <tfoot>
+                  <tr class="total-row bg-white/60"><td colspan="4"><strong>Total</strong></td><td colspan="2" class="text-right font-bold text-slate-900" id="subcontractor-total">₹0</td></tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Site Expenses Tab -->
+          <div id="tab-expenses" class="tab-panel space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Site Expenses</h3>
+              <button class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-700" onclick="app.showModal('transaction'); app.setupTransactionForm('expenses')">+ Add Expense</button>
+            </div>
+            <div class="table-wrapper overflow-hidden rounded-2xl border border-white/70 bg-white/50 backdrop-blur-xl">
+              <table class="data-table min-w-full">
+                <thead>
+                  <tr><th>Date</th><th>Description</th><th>Category</th><th>Vendor</th><th>Amount</th><th class="text-right">Actions</th></tr>
+                </thead>
+                <tbody id="expenses-table-body"></tbody>
+                <tfoot>
+                  <tr class="total-row bg-white/60"><td colspan="5"><strong>Total</strong></td><td class="text-right font-bold text-slate-900" id="expenses-total">₹0</td></tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- New Project Modal -->
+    <div id="modal-project" class="modal fixed inset-0 z-[200] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+      <div class="w-full max-w-lg overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-elevated backdrop-blur-2xl">
+        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <h3 class="text-lg font-bold text-slate-900">New Project</h3>
+          <button class="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" onclick="app.closeModal('project')">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <form id="form-project" class="space-y-4 p-6" onsubmit="app.createProject(event)">
+          <div>
+            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Project Name *</label>
+            <input type="text" name="name" required placeholder="e.g., Kaloor Site" class="glass-input w-full">
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Location</label>
+            <input type="text" name="location" placeholder="e.g., Kaloor, Kochi" class="glass-input w-full">
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Contract Value (₹)</label>
+            <input type="number" name="contract_value" placeholder="e.g., 1500000" class="glass-input w-full">
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Start Date</label>
+            <input type="date" name="start_date" class="glass-input w-full">
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Status</label>
+            <select name="status" class="glass-select w-full">
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="flex justify-end gap-3 pt-2">
+            <button type="button" class="rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition hover:bg-white" onclick="app.closeModal('project')">Cancel</button>
+            <button type="submit" class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-700">Create Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div id="modal-transaction" class="modal fixed inset-0 z-[200] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+      <div class="w-full max-w-lg overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-elevated backdrop-blur-2xl">
+        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <h3 class="text-lg font-bold text-slate-900" id="transaction-modal-title">Add Entry</h3>
+          <button class="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" onclick="app.closeModal('transaction')">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <form id="form-transaction" class="space-y-4 p-6" onsubmit="app.saveTransaction(event)">
+          <input type="hidden" name="transactionType" id="transaction-type">
+          <input type="hidden" name="editId" id="edit-id">
+
+          <div>
+            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Date *</label>
+            <input type="date" name="date" required id="tx-date" class="glass-input w-full">
+          </div>
+
+          <div id="fields-owner" class="space-y-4">
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Amount (₹) *</label>
+              <input type="number" name="amount" required placeholder="e.g., 50000" class="glass-input w-full">
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Notes</label>
+              <input type="text" name="notes" placeholder="e.g., First installment" class="glass-input w-full">
+            </div>
+          </div>
+
+          <div id="fields-subcontractor" class="hidden space-y-4">
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Subcontractor Name *</label>
+              <input type="text" name="subcontractor_name" required placeholder="e.g., Joseph" class="glass-input w-full">
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Type</label>
+              <select name="type" class="glass-select w-full">
+                <option value="Labour">Labour Only</option>
+                <option value="Labour+Material">Labour + Material</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Amount (₹) *</label>
+              <input type="number" name="amount" required placeholder="e.g., 38000" class="glass-input w-full">
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Notes</label>
+              <input type="text" name="notes" placeholder="e.g., Foundation work" class="glass-input w-full">
+            </div>
+          </div>
+
+          <div id="fields-expenses" class="hidden space-y-4">
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Description *</label>
+              <input type="text" name="description" required placeholder="e.g., CEMENT" class="glass-input w-full">
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Category</label>
+              <select name="category" class="glass-select w-full">
+                <option value="Materials">Materials</option>
+                <option value="Tools">Tools</option>
+                <option value="Transport">Transport</option>
+                <option value="Food">Food</option>
+                <option value="Labour">Labour</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Vendor</label>
+              <input type="text" name="vendor" placeholder="e.g., Kuriyil Stores" class="glass-input w-full">
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">Amount (₹) *</label>
+              <input type="number" name="amount" required placeholder="e.g., 11000" class="glass-input w-full">
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-2">
+            <button type="button" class="rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition hover:bg-white" onclick="app.closeModal('transaction')">Cancel</button>
+            <button type="submit" class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-700">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast fixed right-4 top-4 z-[300] translate-x-[120%] rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-elevated transition-transform duration-300"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+/* BuildTrack — TenantFlow-style glassmorphism additions */
+
+/* Inputs & selects */
+.glass-input {
+  @apply rounded-xl border border-slate-200/80 bg-white/85 px-3.5 py-2.5 text-sm text-slate-900 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-all placeholder:text-slate-400;
+}
+.glass-input:hover { @apply bg-white/95; }
+.glass-input:focus {
+  @apply border-brand-400 bg-white outline-none ring-2 ring-brand-500/30;
+}
+
+.glass-select {
+  @apply rounded-xl border border-slate-200/80 bg-white/85 px-3.5 py-2.5 pr-8 text-sm text-slate-900 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-all;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+.glass-select:hover { @apply bg-white/95; }
+.glass-select:focus {
+  @apply border-brand-400 bg-white outline-none ring-2 ring-brand-500/30;
+}
+
+/* Views */
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Tables */
+.data-table { min-width: 100%; border-collapse: collapse; }
+.data-table th {
+  @apply bg-white/40 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 backdrop-blur-sm;
+}
+.data-table td {
+  @apply border-b border-white/40 px-4 py-3.5 text-sm text-slate-700 transition-colors;
+}
+.data-table tbody tr:hover td { @apply bg-white/40; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.total-row td { @apply border-t-2 border-slate-100 bg-white/60 font-bold text-slate-900; }
+.empty-cell { @apply py-10 text-center text-slate-500; }
+
+/* Tab buttons */
+.tab-btn { @apply bg-slate-100 text-slate-600; }
+.tab-btn:hover { @apply bg-slate-200 text-slate-800; }
+.tab-btn.active { @apply bg-brand-600 text-white shadow-md shadow-brand-500/25; }
+
+/* Tab panels */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+/* Modals */
+.modal.active { display: flex; animation: fadeIn 0.2s ease; }
+
+/* Toast */
+.toast.show { transform: translateX(0); }
+.toast.success { @apply bg-emerald-600; }
+.toast.error { @apply bg-rose-600; }
+
+/* Responsive table scroll */
+@media (max-width: 768px) {
+  .table-wrapper { overflow-x: auto; }
+  .data-table { min-width: 640px; }
+}
