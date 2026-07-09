@@ -1,4 +1,5 @@
 import { Button } from './ui/Button';
+import { Pencil, Trash2 } from 'lucide-react';
 
 type DataTableRow = { id: string };
 
@@ -17,37 +18,37 @@ interface DataTableProps<T extends DataTableRow = DataTableRow> {
 
 export function DataTable<T extends DataTableRow>({ columns, rows, onEdit, onDelete }: DataTableProps<T>) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50">
+    <div className="table-wrapper overflow-x-auto">
+      <table className="data-table min-w-full">
+        <thead>
           <tr>
             {columns.map((c) => (
-              <th key={c.key} className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th key={c.key} className="rounded-tl-2xl first:rounded-tl-2xl last:rounded-tr-2xl">
                 {c.label}
               </th>
             ))}
-            {(onEdit || onDelete) && <th className="px-4 py-3 text-right">Actions</th>}
+            {(onEdit || onDelete) && <th className="rounded-tr-2xl text-right">Actions</th>}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody>
           {rows.map((row) => (
-            <tr key={row.id} className="hover:bg-slate-50">
+            <tr key={row.id}>
               {columns.map((c) => (
-                <td key={c.key} className="px-4 py-3 text-slate-700">
-                  {c.render ? c.render(row) : (row[c.key] as React.ReactNode)}
+                <td key={c.key}>
+                  {c.render ? c.render(row) : (row[c.key as keyof T] as React.ReactNode)}
                 </td>
               ))}
               {(onEdit || onDelete) && (
-                <td className="px-4 py-3 text-right">
+                <td className="text-right">
                   <div className="flex justify-end gap-2">
                     {onEdit && (
-                      <Button variant="ghost" onClick={() => onEdit(row)} className="px-2 py-1 text-xs">
-                        Edit
+                      <Button variant="ghost" onClick={() => onEdit(row)} className="h-8 px-2 py-1 text-xs">
+                        <Pencil className="h-3.5 w-3.5" />
                       </Button>
                     )}
                     {onDelete && (
-                      <Button variant="danger" onClick={() => onDelete(row)} className="px-2 py-1 text-xs">
-                        Delete
+                      <Button variant="danger" onClick={() => onDelete(row)} className="h-8 px-2 py-1 text-xs">
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     )}
                   </div>

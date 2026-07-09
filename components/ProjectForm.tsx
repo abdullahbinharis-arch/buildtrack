@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
+import { HardHat } from 'lucide-react';
 
 interface ProjectFormProps {
   onSubmit: (data: { name: string; estimated_value: number }) => void;
@@ -19,13 +20,20 @@ export function ProjectForm({ onSubmit, onCancel }: ProjectFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-lg font-semibold text-slate-900">New Project</h3>
-      <Input placeholder="Project name" value={name} onChange={(e) => setName(e.target.value)} required />
-      <Input type="number" placeholder="Estimated value" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} required />
+    <form onSubmit={handleSubmit} className="glass-strong space-y-4 p-6">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100/80 text-brand-600 ring-1 ring-white/70">
+          <HardHat className="h-4 w-4" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900">New Project</h3>
+      </div>
+      <div className="form-grid">
+        <Input label="Project name" placeholder="e.g., Kaloor Site" value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input type="number" label="Estimated value" placeholder="Contract value" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} required />
+      </div>
       <div className="flex gap-2">
         <Button type="submit">Create</Button>
-        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
+        {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
       </div>
     </form>
   );

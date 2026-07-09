@@ -48,23 +48,23 @@ export function PaymentForm({ initial, showType = false, onSubmit, onCancel }: P
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-        <Input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+    <form onSubmit={handleSubmit} className="glass-strong space-y-4 p-5">
+      <div className="form-grid">
+        <Input type="date" label="Date" value={date} onChange={(e) => setDate(e.target.value)} required />
+        <Input type="number" label="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         {showType && (
-          <Select value={type} onChange={(e) => setType(e.target.value as PaymentType)}>
+          <Select label="Type" value={type} onChange={(e) => setType(e.target.value as PaymentType)}>
             <option value="Labour">Labour</option>
             <option value="Labour+Material">Labour+Material</option>
           </Select>
         )}
       </div>
       {showType && (
-        <Input placeholder="Description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Input label="Description" placeholder="Optional description" value={description} onChange={(e) => setDescription(e.target.value)} />
       )}
       <div className="flex gap-2">
         <Button type="submit">{initial ? 'Update' : 'Add'}</Button>
-        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
+        {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
       </div>
     </form>
   );

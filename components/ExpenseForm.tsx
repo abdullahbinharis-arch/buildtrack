@@ -33,15 +33,15 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-        <Input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-        <Input placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+    <form onSubmit={handleSubmit} className="glass-strong space-y-4 p-5">
+      <div className="form-grid">
+        <Input type="date" label="Date" value={date} onChange={(e) => setDate(e.target.value)} required />
+        <Input type="number" label="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+        <Input label="Description" placeholder="What was purchased?" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
       <div className="flex gap-2">
         <Button type="submit">{initial ? 'Update' : 'Add'}</Button>
-        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
+        {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
       </div>
     </form>
   );
