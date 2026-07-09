@@ -1,0 +1,31 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+interface Params { params: { id: string } }
+
+export async function GET(_req: NextRequest, { params }: Params) {
+  const payments = await prisma.ownerPayment.findMany({
+    where: { project_id: params.id },
+    orderBy: { date: 'desc' },
+  });
+  return NextResponse.json(payments);
+}
+
+export async function POST(req: NextRequest, { params }: Params) {
+  try {
+    const body = await req.json();
+    if (typeof body.amount !== 'number' || !body.date) {
+      return NextResponse.json({ error: 'Invalid payment data' }, { status: 400 });
+    }
+    const payment = await prisma.ownerPayment.create({
+      data: {
+        project_id: params.id,
+        amount: body.amount,
+        date: new Date(body.date),
+      },
+    });
+    return NextResponse.json(payment, { status: 201 });
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
+}
