@@ -1,6 +1,6 @@
 import { Button } from './ui/Button';
 
-type DataTableRow = { id: string } & Record<string, unknown>;
+type DataTableRow = { id: string };
 
 interface Column<T extends DataTableRow> {
   key: keyof T & string;
