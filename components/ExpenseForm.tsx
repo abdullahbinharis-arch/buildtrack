@@ -29,7 +29,7 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ amount: Number(amount), date, description: description || null });
+    onSubmit({ amount: Number(amount), date, description });
   };
 
   return (
