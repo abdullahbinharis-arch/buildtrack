@@ -1,5 +1,8 @@
 # Dependencies
 node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
 # Next.js
 .next
@@ -22,6 +25,10 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
 
 # SDD workspace
 .superpowers/sdd/
