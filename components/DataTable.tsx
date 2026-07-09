@@ -1,19 +1,21 @@
 import { Button } from './ui/Button';
 
-interface Column {
-  key: string;
+type DataTableRow = { id: string } & Record<string, unknown>;
+
+interface Column<T extends DataTableRow> {
+  key: keyof T & string;
   label: string;
-  render?: (row: any) => React.ReactNode;
+  render?: (row: T) => React.ReactNode;
 }
 
-interface DataTableProps {
-  columns: Column[];
-  rows: any[];
-  onEdit?: (row: any) => void;
-  onDelete?: (row: any) => void;
+interface DataTableProps<T extends DataTableRow = DataTableRow> {
+  columns: Column<T>[];
+  rows: T[];
+  onEdit?: (row: T) => void;
+  onDelete?: (row: T) => void;
 }
 
-export function DataTable({ columns, rows, onEdit, onDelete }: DataTableProps) {
+export function DataTable<T extends DataTableRow>({ columns, rows, onEdit, onDelete }: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200">
       <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -32,7 +34,7 @@ export function DataTable({ columns, rows, onEdit, onDelete }: DataTableProps) {
             <tr key={row.id} className="hover:bg-slate-50">
               {columns.map((c) => (
                 <td key={c.key} className="px-4 py-3 text-slate-700">
-                  {c.render ? c.render(row) : row[c.key]}
+                  {c.render ? c.render(row) : (row[c.key] as React.ReactNode)}
                 </td>
               ))}
               {(onEdit || onDelete) && (

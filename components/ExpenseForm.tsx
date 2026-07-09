@@ -2,20 +2,34 @@ import { useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 
+export interface ExpenseFormData {
+  amount: number;
+  date: string;
+  description?: string | null;
+}
+
+export interface ExpenseFormInput {
+  amount?: string | number | null;
+  date?: string | Date | null;
+  description?: string | null;
+}
+
 interface ExpenseFormProps {
-  initial?: any;
-  onSubmit: (data: any) => void;
+  initial?: ExpenseFormInput | null;
+  onSubmit: (data: ExpenseFormData) => void;
   onCancel?: () => void;
 }
 
 export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
-  const [amount, setAmount] = useState(initial?.amount ?? '');
-  const [date, setDate] = useState(initial?.date ? new Date(initial.date).toISOString().split('T')[0] : '');
-  const [description, setDescription] = useState(initial?.description ?? '');
+  const [amount, setAmount] = useState<string | number>(initial?.amount ?? '');
+  const [date, setDate] = useState<string>(
+    initial?.date ? new Date(initial.date).toISOString().split('T')[0] : ''
+  );
+  const [description, setDescription] = useState<string>(initial?.description ?? '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ amount: Number(amount), date, description });
+    onSubmit({ amount: Number(amount), date, description: description || null });
   };
 
   return (
