@@ -18,9 +18,12 @@ function fmt(n: number) {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const profit = project.profit_loss >= 0;
-  const ratio = project.estimated_value
-    ? Math.round((project.total_expenses / project.estimated_value) * 100)
+  const hasContract = project.estimated_value > 0;
+  const denominator = hasContract ? project.estimated_value : project.total_received;
+  const ratio = denominator
+    ? Math.round((project.total_expenses / denominator) * 100)
     : 0;
+  const progressLabel = hasContract ? 'Cost vs contract' : 'Cost vs received';
 
   return (
     <Link href={`/project/${project.id}`}>
@@ -51,7 +54,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         </div>
         <div className="mt-4">
           <div className="flex justify-between text-xs text-slate-500">
-            <span>Cost vs contract</span>
+            <span>{progressLabel}</span>
             <span>{ratio}%</span>
           </div>
           <div className="mt-1 h-2 w-full rounded-full bg-slate-100">
