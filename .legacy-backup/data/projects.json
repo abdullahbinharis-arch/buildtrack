@@ -1,0 +1,415 @@
+[
+  {
+    "id": "3ed511ea-d3f1-4cc2-bf22-c72129159a55",
+    "name": "Kaloor Site",
+    "location": "Kaloor, Kochi",
+    "contract_value": 0,
+    "start_date": "2026-04-13",
+    "status": "active",
+    "created_at": "2026-07-09T17:30:56.281Z",
+    "owner_payments": [
+      {
+        "id": "393b52a0-c4cd-4ec3-908f-ee695d2bd26d",
+        "date": "2026-04-30",
+        "amount": 50000,
+        "notes": ""
+      },
+      {
+        "id": "8af641c5-51c9-4e30-b789-cee07405e488",
+        "date": "2026-04-30",
+        "amount": 100000,
+        "notes": ""
+      },
+      {
+        "id": "216d5601-321a-43a2-9334-e784f086aa52",
+        "date": "2026-04-30",
+        "amount": 100000,
+        "notes": ""
+      },
+      {
+        "id": "a3db5b5e-3d7b-4084-baef-48425dcc2acd",
+        "date": "2026-04-30",
+        "amount": 100000,
+        "notes": ""
+      },
+      {
+        "id": "46ca2b32-6549-41a5-b5e9-dc4c414cce8c",
+        "date": "2026-05-15",
+        "amount": 50000,
+        "notes": ""
+      },
+      {
+        "id": "659eeaec-913a-430f-915f-862010160bb0",
+        "date": "2026-05-17",
+        "amount": 100000,
+        "notes": ""
+      },
+      {
+        "id": "0f57860b-c3db-4c79-bccf-17efe3d3334b",
+        "date": "2026-06-01",
+        "amount": 100000,
+        "notes": ""
+      },
+      {
+        "id": "11473d8c-f5f0-44cc-a6e9-5e7d18953bd2",
+        "date": "2026-06-15",
+        "amount": 100000,
+        "notes": ""
+      },
+      {
+        "id": "fa2f1524-a2fa-4dcd-927d-e492a36c494a",
+        "date": "2026-07-08",
+        "amount": 100000,
+        "notes": ""
+      }
+    ],
+    "subcontractor_payments": [
+      {
+        "id": "6edc9cac-ca43-4cd7-8052-ff936ed7a1c1",
+        "date": "2026-03-29",
+        "subcontractor_name": "Joseph",
+        "amount": 38000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "9f775efc-f301-430b-bb93-f1e02c2a97c6",
+        "date": "2026-04-04",
+        "subcontractor_name": "Joseph",
+        "amount": 30000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "7050d33d-2e91-4ca5-aa1d-f9252dfa5c9b",
+        "date": "2026-04-11",
+        "subcontractor_name": "Joseph",
+        "amount": 30000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "b646c85f-7d8a-4c4c-99f7-d14726e6c213",
+        "date": "2026-04-18",
+        "subcontractor_name": "Joseph",
+        "amount": 15000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "1a4aa244-9a1d-4239-9c35-2fe37c924822",
+        "date": "2026-04-25",
+        "subcontractor_name": "Joseph",
+        "amount": 15000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "2da735a5-227f-45ac-92bc-2652b80cf700",
+        "date": "2026-05-02",
+        "subcontractor_name": "Joseph",
+        "amount": 15000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "f4b81bea-f610-4473-8e29-460a42bcb2b1",
+        "date": "2026-05-09",
+        "subcontractor_name": "Joseph",
+        "amount": 20000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "e82e6ce4-b147-40dc-8c4f-9efa882dd3b8",
+        "date": "2026-05-16",
+        "subcontractor_name": "Joseph",
+        "amount": 24000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "2d40d85f-f01c-430b-84f5-c6afe1cc6bbd",
+        "date": "2026-05-19",
+        "subcontractor_name": "Joseph",
+        "amount": 30000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "63b083cd-30cb-4ee9-b94b-6413eff38085",
+        "date": "2026-05-23",
+        "subcontractor_name": "Joseph",
+        "amount": 15000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "4cc16106-d811-486c-ac04-1e6a2ee6ea0b",
+        "date": "2026-05-30",
+        "subcontractor_name": "Joseph",
+        "amount": 25000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "c666baf7-3ab6-4d22-95c4-e6b1c71aad68",
+        "date": "2026-06-06",
+        "subcontractor_name": "Joseph",
+        "amount": 30000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "fc8ad815-3655-4977-8f9a-07f811537e08",
+        "date": "2026-06-13",
+        "subcontractor_name": "Joseph",
+        "amount": 45000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "96f6aa14-04c6-48be-9bcd-72eb8e6d11ae",
+        "date": "2026-06-20",
+        "subcontractor_name": "Joseph",
+        "amount": 30000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "369f1ba5-a98b-4ede-8217-1b57bf7adbde",
+        "date": "2026-06-27",
+        "subcontractor_name": "Joseph",
+        "amount": 40000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "66ea3e82-aa2e-4948-92f2-8f14d03fb6ab",
+        "date": "2026-07-04",
+        "subcontractor_name": "Joseph",
+        "amount": 50000,
+        "type": "Labour",
+        "notes": ""
+      },
+      {
+        "id": "684e463b-b675-4af5-9fac-fbbe6f5a316f",
+        "date": "2026-07-06",
+        "subcontractor_name": "Joseph",
+        "amount": 40000,
+        "type": "Labour",
+        "notes": ""
+      }
+    ],
+    "site_expenses": [
+      {
+        "id": "071f6b1f-087c-4279-aa34-3e8a2ccb48cc",
+        "date": "2026-04-13",
+        "description": "CEMENT",
+        "amount": 11000,
+        "category": "Materials",
+        "vendor": ""
+      },
+      {
+        "id": "f9a9a6c1-b842-46af-8bc8-e4bf53782a41",
+        "date": "2026-04-13",
+        "description": "FREIGHT",
+        "amount": 500,
+        "category": "Transport",
+        "vendor": ""
+      },
+      {
+        "id": "6aa9681a-71c1-44bd-8acf-b71325fe3a97",
+        "date": "2026-04-18",
+        "description": "TARPOLIN",
+        "amount": 510,
+        "category": "Tools",
+        "vendor": ""
+      },
+      {
+        "id": "01193563-9975-4424-80e2-845b68879844",
+        "date": "2026-04-18",
+        "description": "WATER TANK",
+        "amount": 27000,
+        "category": "Tools",
+        "vendor": ""
+      },
+      {
+        "id": "217a2e55-1c80-4ea3-bf2e-78bb7b21222c",
+        "date": "2026-04-18",
+        "description": "WATER PROOF",
+        "amount": 3750,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "8cf1fe3e-86d9-49d0-a480-f48400ddd0a1",
+        "date": "2026-04-18",
+        "description": "BRUSH",
+        "amount": 100,
+        "category": "Tools",
+        "vendor": ""
+      },
+      {
+        "id": "a5375081-2233-4332-bf1f-379d4f8aae6f",
+        "date": "2026-04-02",
+        "description": "M SAND",
+        "amount": 10500,
+        "category": "Materials",
+        "vendor": ""
+      },
+      {
+        "id": "1f978c68-bd39-4743-94b7-89639a989484",
+        "date": "2026-04-05",
+        "description": "20 MM",
+        "amount": 9300,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "1770d9ad-fe87-4e35-8ad8-8064508b1dc7",
+        "date": "2026-04-09",
+        "description": "6\" BLOCK",
+        "amount": 16900,
+        "category": "Materials",
+        "vendor": ""
+      },
+      {
+        "id": "32c65068-8189-41b9-aa9e-fc1fd33da1e3",
+        "date": "2026-04-22",
+        "description": "M SAND",
+        "amount": 10500,
+        "category": "Materials",
+        "vendor": ""
+      },
+      {
+        "id": "c664a4ad-eb03-4ce8-9bd2-3c770fc5895b",
+        "date": "2026-04-24",
+        "description": "KURIYIL STORES",
+        "amount": 9100,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "7ffd4a74-2ed7-41aa-b186-9a0e5730acd9",
+        "date": "2026-04-24",
+        "description": "20 MM",
+        "amount": 9300,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "faaec5c7-411a-4958-b83a-df3285f38855",
+        "date": "2026-04-29",
+        "description": "SHINU JOY - WELL CLEANING",
+        "amount": 15000,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "be0c9ba6-c238-4980-886d-97a0a050445b",
+        "date": "2026-04-30",
+        "description": "SEPTIC TANK CLEANING",
+        "amount": 4000,
+        "category": "Tools",
+        "vendor": ""
+      },
+      {
+        "id": "a6f7094a-ac88-476a-aa2f-ac65621b6b36",
+        "date": "2026-04-30",
+        "description": "MOTOR RENT",
+        "amount": 1000,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "061b6b4d-63fb-457f-b527-a24770f89c38",
+        "date": "2026-05-02",
+        "description": "P SAND",
+        "amount": 4200,
+        "category": "Materials",
+        "vendor": ""
+      },
+      {
+        "id": "c0ed6134-481b-4a3a-a897-aaaba9d3a706",
+        "date": "2026-05-09",
+        "description": "MADASSERY AGENCIES",
+        "amount": 6262,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "b25a1fa5-1c2d-4840-84ad-a45c315c907b",
+        "date": "2026-05-14",
+        "description": "KURIYIL STORES",
+        "amount": 87925,
+        "category": "Other",
+        "vendor": ""
+      },
+      {
+        "id": "1de0c775-433a-4f68-a2f8-e9c41fc6690b",
+        "date": "2026-05-14",
+        "description": "TRANSPORTATION",
+        "amount": 1102,
+        "category": "Transport",
+        "vendor": ""
+      },
+      {
+        "id": "17726e2b-68ba-493b-9df3-e0744da97a16",
+        "date": "2026-05-16",
+        "description": "NET COVERING & UNLOADING",
+        "amount": 2000,
+        "category": "Tools",
+        "vendor": ""
+      },
+      {
+        "id": "951c9b7f-3285-4d62-853b-64e3ec96c715",
+        "date": "2026-05-19",
+        "description": "KURIYIL STORES (CEMENT)",
+        "amount": 22750,
+        "category": "Materials",
+        "vendor": ""
+      },
+      {
+        "id": "8d0f8376-f3a2-4ce2-9dff-aa853a90e1cb",
+        "date": "2026-05-23",
+        "description": "FOOD FOR WORKERS",
+        "amount": 2500,
+        "category": "Food",
+        "vendor": ""
+      },
+      {
+        "id": "d3ba19df-f6e0-40dc-b6aa-0a4fb7a51457",
+        "date": "2026-05-30",
+        "description": "HOSE",
+        "amount": 2000,
+        "category": "Tools",
+        "vendor": ""
+      },
+      {
+        "id": "96df87f7-bc1e-439a-b850-e5ca910f37f1",
+        "date": "2026-05-30",
+        "description": "LABOUR",
+        "amount": 10801,
+        "category": "Labour",
+        "vendor": ""
+      },
+      {
+        "id": "b4c0684f-5bfd-4384-b2e0-ff23b684289e",
+        "date": "2026-06-20",
+        "description": "FOOD AND BUILDING NET",
+        "amount": 5000,
+        "category": "Food",
+        "vendor": ""
+      },
+      {
+        "id": "4628d8cd-a81a-445e-ad80-3b27351243f8",
+        "date": "2026-06-30",
+        "description": "WINDING WIRE",
+        "amount": 360,
+        "category": "Materials",
+        "vendor": ""
+      }
+    ]
+  }
+]
