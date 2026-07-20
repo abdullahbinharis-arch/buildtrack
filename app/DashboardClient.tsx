@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProjectCard } from '@/components/ProjectCard';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/lib/utils';
+import { apiFetch } from '@/lib/fetch-client';
 import {
   HardHat, Download, Plus, TrendingUp, Wallet, PiggyBank, Building2, Percent,
 } from 'lucide-react';
@@ -26,17 +28,29 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialProjects }: DashboardClientProps) {
+  const router = useRouter();
   const [projects, setProjects] = useState<ProjectSummary[]>(initialProjects);
   const [showForm, setShowForm] = useState(false);
 
+  useEffect(() => {
+    // If API key is set on the server but not in sessionStorage, redirect to login
+    const hasKey = sessionStorage.getItem('buildtrack_key');
+    // Only redirect if we get a 401 from the API (key might be set server-side)
+    if (!hasKey) {
+      apiFetch('/api/projects').then((res) => {
+        if (res.status === 401) router.push('/login');
+      });
+    }
+  }, [router]);
+
   const fetchProjects = async () => {
-    const res = await fetch('/api/projects');
+    const res = await apiFetch('/api/projects');
     const data = await res.json();
     setProjects(data);
   };
 
   const handleCreate = async (payload: { name: string; estimated_value: number; commission_rate: number }) => {
-    await fetch('/api/projects', {
+    await apiFetch('/api/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -46,7 +60,7 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
   };
 
   const handleExport = async () => {
-    const res = await fetch('/api/export');
+    const res = await apiFetch('/api/export');
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

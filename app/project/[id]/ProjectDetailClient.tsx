@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TabNav } from '@/components/TabNav';
 import { PaymentForm, PaymentFormData } from '@/components/PaymentForm';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { apiFetch } from '@/lib/fetch-client';
 import {
   ArrowLeft,
   HardHat,
@@ -85,8 +86,17 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const [deleting, setDeleting] = useState<{ type: 'project' | 'owner' | 'owner_direct' | 'sub' | 'expense' | 'commission_payout'; id: string } | null>(null);
   const [editingProject, setEditingProject] = useState(false);
 
+  useEffect(() => {
+    const hasKey = sessionStorage.getItem('buildtrack_key');
+    if (!hasKey) {
+      apiFetch(`/api/projects/${project.id}`).then((res) => {
+        if (res.status === 401) router.push('/login');
+      });
+    }
+  }, []);
+
   const fetchProject = async () => {
-    const res = await fetch(`/api/projects/${project.id}`);
+    const res = await apiFetch(`/api/projects/${project.id}`);
     const data = await res.json();
     setProject(data);
   };
@@ -102,7 +112,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const commissionPayable = commissionReceivable - commissionPaid;
 
   const handleUpdateProject = async (data: { name: string; estimated_value: number; commission_rate: number }) => {
-    await fetch(`/api/projects/${project.id}`, {
+    await apiFetch(`/api/projects/${project.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -112,7 +122,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   };
 
   const handleDeleteProject = async () => {
-    await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
+    await apiFetch(`/api/projects/${project.id}`, { method: 'DELETE' });
     router.push('/');
   };
 
@@ -121,7 +131,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     const url = editing
       ? `/api/projects/${project.id}/owner-payments/${editing.id}`
       : `/api/projects/${project.id}/owner-payments`;
-    await fetch(url, {
+    await apiFetch(url, {
       method: editing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(base),
@@ -134,7 +144,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     const url = editing
       ? `/api/projects/${project.id}/owner-direct-payments/${editing.id}`
       : `/api/projects/${project.id}/owner-direct-payments`;
-    await fetch(url, {
+    await apiFetch(url, {
       method: editing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -148,7 +158,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     const url = editing
       ? `/api/projects/${project.id}/subcontractor-payments/${editing.id}`
       : `/api/projects/${project.id}/subcontractor-payments`;
-    await fetch(url, {
+    await apiFetch(url, {
       method: editing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -161,7 +171,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     const url = editing
       ? `/api/projects/${project.id}/material-expenses/${editing.id}`
       : `/api/projects/${project.id}/material-expenses`;
-    await fetch(url, {
+    await apiFetch(url, {
       method: editing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -174,7 +184,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     const url = editing
       ? `/api/projects/${project.id}/commission-payouts/${editing.id}`
       : `/api/projects/${project.id}/commission-payouts`;
-    await fetch(url, {
+    await apiFetch(url, {
       method: editing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -184,7 +194,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   };
 
   const deleteRow = async (endpoint: string) => {
-    await fetch(endpoint, { method: 'DELETE' });
+    await apiFetch(endpoint, { method: 'DELETE' });
     setDeleting(null);
     fetchProject();
   };
