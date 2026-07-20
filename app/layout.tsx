@@ -1,3 +1,5 @@
+import './globals.css';
+
 export const metadata = {
   title: 'BuildTrack — Construction Expense Tracker',
   description: 'Track payments, expenses, and profitability across all sites',

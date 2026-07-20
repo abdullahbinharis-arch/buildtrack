@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -11,11 +11,32 @@ model Project {
   id              String   @id @default(uuid())
   name            String
   estimated_value Float
+  commission_rate Float    @default(10)
   created_at      DateTime @default(now())
 
   owner_payments         OwnerPayment[]
+  owner_direct_payments  OwnerDirectPayment[]
   subcontractor_payments SubcontractorPayment[]
   material_expenses      MaterialExpense[]
+  commission_payouts     CommissionPayout[]
+}
+
+model CommissionPayout {
+  id          String   @id @default(uuid())
+  project_id  String
+  amount      Float
+  date        DateTime
+  description String?
+  project     Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+}
+
+model OwnerDirectPayment {
+  id          String   @id @default(uuid())
+  project_id  String
+  amount      Float
+  date        DateTime
+  description String?
+  project     Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
 }
 
 model OwnerPayment {

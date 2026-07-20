@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Legacy backups (keep data folder for migration)
 .legacy-backup/node_modules
+
+# Keep .env out of git
+.env

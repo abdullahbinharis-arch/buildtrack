@@ -16,6 +16,14 @@ export async function GET() {
       include: { project: true },
       orderBy: { date: 'desc' },
     });
+    const ownerDirectPayments = await prisma.ownerDirectPayment.findMany({
+      include: { project: true },
+      orderBy: { date: 'desc' },
+    });
+    const commissionPayouts = await prisma.commissionPayout.findMany({
+      include: { project: true },
+      orderBy: { date: 'desc' },
+    });
 
     const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
@@ -55,10 +63,36 @@ export async function GET() {
       ]),
     ];
 
+    const ownerDirect = [
+      ['id', 'project_id', 'project_name', 'date', 'amount', 'description'],
+      ...ownerDirectPayments.map((p) => [
+        p.id,
+        p.project_id,
+        p.project.name,
+        formatDate(p.date),
+        p.amount,
+        p.description || '',
+      ]),
+    ];
+
+    const commission = [
+      ['id', 'project_id', 'project_name', 'date', 'amount', 'description'],
+      ...commissionPayouts.map((p) => [
+        p.id,
+        p.project_id,
+        p.project.name,
+        formatDate(p.date),
+        p.amount,
+        p.description || '',
+      ]),
+    ];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(haris), 'Haris');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(joseph), 'Joseph');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expense), 'Expense');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ownerDirect), 'Owner Direct');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(commission), 'Commission Payout');
 
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
