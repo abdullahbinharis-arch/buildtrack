@@ -9,7 +9,7 @@ import { ProjectForm } from '@/components/ProjectForm';
 import { DataTable } from '@/components/DataTable';
 import { DeleteConfirm } from '@/components/DeleteConfirm';
 import { Button } from '@/components/ui/Button';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Card, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { apiFetch } from '@/lib/fetch-client';
@@ -380,19 +380,19 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
       {/* Tabs */}
       <Card className="mt-6 overflow-hidden p-0">
-        <div className="border-b border-white/60 bg-white/40 px-4 pt-2">
+        <div className="border-b border-white/60 bg-white/40 px-3 pt-2 sm:px-4">
           <TabNav tabs={TABS} active={activeTab} onChange={setActiveTab} />
         </div>
 
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           {activeTab === 'Owner Payments' && (
             <div className="space-y-4">
-              <CardHeader>
+              <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Owner Payments</CardTitle>
-                  <CardDescription>Money received from the project owner</CardDescription>
+                  <CardDescription className="hidden sm:block">Money received from the project owner</CardDescription>
                 </div>
-              </CardHeader>
+              </div>
               <PaymentForm
                 key={editing?.id || 'owner-new'}
                 initial={editing as OwnerPaymentRow | undefined}
@@ -420,12 +420,12 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
           {activeTab === 'Owner Direct Payments' && (
             <div className="space-y-4">
-              <CardHeader>
+              <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Owner Direct Payments</CardTitle>
-                  <CardDescription>Payments made directly by the owner to vendors</CardDescription>
+                  <CardDescription className="hidden sm:block">Payments made directly by the owner to vendors</CardDescription>
                 </div>
-              </CardHeader>
+              </div>
               <ExpenseForm
                 key={editing?.id || 'owner-direct-new'}
                 initial={editing as OwnerDirectPaymentRow | undefined}
@@ -454,12 +454,12 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
           {activeTab === 'Subcontractor Payments' && (
             <div className="space-y-4">
-              <CardHeader>
+              <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Subcontractor Payments</CardTitle>
-                  <CardDescription>Payments made to subcontractors and labour</CardDescription>
+                  <CardDescription className="hidden sm:block">Payments made to subcontractors and labour</CardDescription>
                 </div>
-              </CardHeader>
+              </div>
               <PaymentForm
                 key={editing?.id || 'sub-new'}
                 initial={editing as SubcontractorPaymentRow | undefined}
@@ -490,12 +490,12 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
           {activeTab === 'Material Expenses' && (
             <div className="space-y-4">
-              <CardHeader>
+              <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Material Expenses</CardTitle>
-                  <CardDescription>Direct material and operational costs</CardDescription>
+                  <CardDescription className="hidden sm:block">Direct material and operational costs</CardDescription>
                 </div>
-              </CardHeader>
+              </div>
               <ExpenseForm
                 key={editing?.id || 'exp-new'}
                 initial={editing as MaterialExpenseRow | undefined}
@@ -524,12 +524,12 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
           {activeTab === 'All Transactions' && (
             <div className="space-y-4">
-              <CardHeader>
+              <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>All Transactions</CardTitle>
-                  <CardDescription>Combined view of every payment, expense, and commission payout for this project</CardDescription>
+                  <CardDescription className="hidden sm:block">Combined view of every payment, expense, and commission payout</CardDescription>
                 </div>
-              </CardHeader>
+              </div>
               <DataTable
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
@@ -546,12 +546,12 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
           {activeTab === 'Commission Payout' && (
             <div className="space-y-4">
-              <CardHeader>
+              <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Commission Payout</CardTitle>
-                  <CardDescription>Record commission amounts paid out for this project</CardDescription>
+                  <CardDescription className="hidden sm:block">Record commission amounts paid out for this project</CardDescription>
                 </div>
-              </CardHeader>
+              </div>
               <ExpenseForm
                 key={editing?.id || 'commission-new'}
                 initial={editing as CommissionPayoutRow | undefined}
