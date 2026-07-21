@@ -299,48 +299,57 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
   return (
     <>
-      <Button variant="ghost" onClick={() => router.push('/')} className="mb-4 gap-1.5 pl-0">
+      <button
+        onClick={() => router.push('/')}
+        className="mb-3 flex min-h-[44px] items-center gap-1.5 pl-0 text-sm font-medium text-slate-500 transition-colors hover:text-brand-600"
+      >
         <ArrowLeft className="h-4 w-4" />
-        Back to dashboard
-      </Button>
+        Back
+      </button>
 
       {/* Project header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white/95 via-slate-50/95 to-white/95 p-6 shadow-xl shadow-slate-900/5 ring-1 ring-white/80 backdrop-blur-2xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/95 via-slate-50/95 to-white/95 p-4 shadow-xl shadow-slate-900/5 ring-1 ring-white/80 backdrop-blur-2xl sm:rounded-3xl sm:p-6">
         <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-300/20 blur-[80px]" />
         <div className="absolute -bottom-12 -left-12 h-56 w-56 rounded-full bg-blue-300/20 blur-[80px]" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-500/25">
-              <HardHat className="h-6 w-6" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-500/25 sm:h-12 sm:w-12 sm:rounded-2xl">
+              <HardHat className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <div>
-              <div className="mb-1 flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{project.name}</h1>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-3xl">{project.name}</h1>
                 <Badge variant="info">Active</Badge>
               </div>
               <p className="text-xs text-slate-500">Construction site financial overview</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setEditingProject(true)} className="gap-1.5">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setEditingProject(true)}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-white/80 bg-white/50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:text-sm"
+            >
               <Pencil className="h-4 w-4" />
               Edit
-            </Button>
-            <Button variant="danger" onClick={() => setDeleting({ type: 'project', id: project.id })} className="gap-1.5">
+            </button>
+            <button
+              onClick={() => setDeleting({ type: 'project', id: project.id })}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-rose-200/80 bg-rose-50/50 px-3.5 py-2 text-xs font-semibold text-rose-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-rose-50/80 sm:text-sm"
+            >
               <Trash2 className="h-4 w-4" />
-              Delete Project
-            </Button>
+              Delete
+            </button>
           </div>
         </div>
 
-        <div className={`relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 ${project.estimated_value > 0 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-5">
           {project.estimated_value > 0 && (
             <SummaryCard label="Contract" value={formatCurrency(project.estimated_value)} icon={Receipt} />
           )}
           <SummaryCard label="Received" value={formatCurrency(received)} tone="success" icon={Wallet} />
           <SummaryCard label="Total Cost" value={formatCurrency(totalCost)} tone="danger" icon={Users} />
           <SummaryCard label="Balance" value={formatCurrency(Math.abs(profit))} tone={profit >= 0 ? 'success' : 'danger'} valueTone={profit >= 0 ? 'success' : 'danger'} icon={Package} />
-          <SummaryCard label={`Commission Payable (${project.commission_rate}%)`} value={formatCurrency(Math.abs(commissionPayable))} tone={commissionPayable >= 0 ? 'success' : 'danger'} valueTone={commissionPayable >= 0 ? 'success' : 'danger'} icon={Percent} />
+          <SummaryCard label={`Commission (${project.commission_rate}%)`} value={formatCurrency(Math.abs(commissionPayable))} tone={commissionPayable >= 0 ? 'success' : 'danger'} valueTone={commissionPayable >= 0 ? 'success' : 'danger'} icon={Percent} />
         </div>
 
         {editingProject && (

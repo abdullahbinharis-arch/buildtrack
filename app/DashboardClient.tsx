@@ -91,20 +91,21 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
         <div className="absolute -bottom-12 -left-12 h-56 w-56 rounded-full bg-blue-300/20 blur-[80px]" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-500/25">
-              <HardHat className="h-6 w-6" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-500/25 sm:h-12 sm:w-12 sm:rounded-2xl">
+              <HardHat className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">BuildTrack</h1>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-3xl">BuildTrack</h1>
               <p className="text-xs text-slate-500">Track payments, expenses, and profitability across all sites</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={handleExport} className="gap-1.5">
+            <Button variant="outline" onClick={handleExport} className="gap-1.5 min-h-[44px] flex-1 sm:flex-none">
               <Download className="h-4 w-4" />
-              Download Backup
+              <span className="sm:hidden">Backup</span>
+              <span className="hidden sm:inline">Download Backup</span>
             </Button>
-            <Button onClick={() => setShowForm(true)} className="gap-1.5">
+            <Button onClick={() => setShowForm(true)} className="gap-1.5 min-h-[44px] flex-1 sm:flex-none">
               <Plus className="h-4 w-4" />
               New Project
             </Button>
