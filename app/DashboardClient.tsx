@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProjectCard } from '@/components/ProjectCard';
 import { ProjectForm } from '@/components/ProjectForm';
-import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/lib/utils';
 import { apiFetch } from '@/lib/fetch-client';
 import {
@@ -86,29 +85,34 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
   return (
     <>
       {/* Hero card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white/95 via-slate-50/95 to-white/95 p-6 shadow-xl shadow-slate-900/5 ring-1 ring-white/80 backdrop-blur-2xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/95 via-slate-50/95 to-white/95 px-4 py-4 shadow-xl shadow-slate-900/5 ring-1 ring-white/80 backdrop-blur-2xl sm:rounded-3xl sm:p-6">
         <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-300/20 blur-[80px]" />
         <div className="absolute -bottom-12 -left-12 h-56 w-56 rounded-full bg-blue-300/20 blur-[80px]" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-500/25 sm:h-12 sm:w-12 sm:rounded-2xl">
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-500/25 sm:h-12 sm:w-12 sm:rounded-2xl">
               <HardHat className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-3xl">BuildTrack</h1>
-              <p className="text-xs text-slate-500">Track payments, expenses, and profitability across all sites</p>
+              <h1 className="text-lg font-bold tracking-tight text-slate-900 sm:text-3xl">BuildTrack</h1>
+              <p className="text-[10px] text-slate-500 truncate sm:text-xs">Track payments, expenses, and profitability</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={handleExport} className="gap-1.5 min-h-[44px] flex-1 sm:flex-none">
-              <Download className="h-4 w-4" />
-              <span className="sm:hidden">Backup</span>
+          <div className="flex gap-1.5 sm:gap-2">
+            <button
+              onClick={handleExport}
+              className="flex min-h-[36px] items-center gap-1 rounded-lg border border-white/80 bg-white/50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:min-h-[44px] sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm"
+            >
+              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Download Backup</span>
-            </Button>
-            <Button onClick={() => setShowForm(true)} className="gap-1.5 min-h-[44px] flex-1 sm:flex-none">
-              <Plus className="h-4 w-4" />
-              New Project
-            </Button>
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex min-h-[36px] items-center gap-1 rounded-lg bg-brand-600 px-2.5 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-500/20 transition-all hover:bg-brand-700 sm:min-h-[44px] sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm"
+            >
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">New Project</span>
+            </button>
           </div>
         </div>
       </div>
