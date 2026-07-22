@@ -25,7 +25,7 @@ import {
   Percent,
 } from 'lucide-react';
 
-const TABS = ['All Transactions', 'Owner Payment Received', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Misc Expenses', 'Commission Payout'];
+const TABS = ['All Transactions', 'Payment Received', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Misc Expenses', 'Commission Payout'];
 
 export interface ProjectWithRecords {
   id: string;
@@ -96,6 +96,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     const hasKey = sessionStorage.getItem('buildtrack_key');
@@ -177,6 +178,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       body: JSON.stringify(base),
     });
     setEditing(null);
+    setFormKey((k) => k + 1);
     fetchProject();
   };
 
@@ -190,6 +192,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       body: JSON.stringify(data),
     });
     setEditing(null);
+    setFormKey((k) => k + 1);
     fetchProject();
   };
 
@@ -204,6 +207,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       body: JSON.stringify(data),
     });
     setEditing(null);
+    setFormKey((k) => k + 1);
     fetchProject();
   };
 
@@ -217,6 +221,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       body: JSON.stringify(data),
     });
     setEditing(null);
+    setFormKey((k) => k + 1);
     fetchProject();
   };
 
@@ -230,6 +235,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       body: JSON.stringify(data),
     });
     setEditing(null);
+    setFormKey((k) => k + 1);
     fetchProject();
   };
 
@@ -243,6 +249,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       body: JSON.stringify(data),
     });
     setEditing(null);
+    setFormKey((k) => k + 1);
     fetchProject();
   };
 
@@ -313,7 +320,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const editFromAll = (row: typeof allTransactions[number]) => {
     switch (row.category) {
       case 'Owner Payment':
-        setActiveTab('Owner Payment Received');
+        setActiveTab('Payment Received');
         setEditing(row as OwnerPaymentRow);
         break;
       case 'Owner Direct':
@@ -342,7 +349,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const deleteFromAll = (row: typeof allTransactions[number]) => {
     switch (row.category) {
       case 'Owner Payment':
-        setActiveTab('Owner Payment Received');
+        setActiveTab('Payment Received');
         setDeleting({ type: 'owner', id: row.id });
         break;
       case 'Owner Direct':
@@ -450,16 +457,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
             />
           </div>
         )}
-
-        {deleting?.type === 'project' && (
-          <div className="relative mt-5">
-            <DeleteConfirm
-              title="Are you sure you want to delete this project and all its records?"
-              onConfirm={handleDeleteProject}
-              onCancel={() => setDeleting(null)}
-            />
-          </div>
-        )}
       </div>
 
       {/* Import result banner */}
@@ -477,16 +474,16 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         </div>
 
         <div className="p-4 sm:p-5">
-          {activeTab === 'Owner Payment Received' && (
+          {activeTab === 'Payment Received' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Owner Payment Received</CardTitle>
+                  <CardTitle>Payment Received</CardTitle>
                   <CardDescription className="hidden sm:block">Money received from the project owner</CardDescription>
                 </div>
               </div>
               <PaymentForm
-                key={editing?.id || 'owner-new'}
+                key={editing?.id || 'owner-new-' + formKey}
                 initial={editing as OwnerPaymentRow | undefined}
                 onSubmit={submitOwner}
                 onCancel={editing ? () => setEditing(null) : undefined}
@@ -514,13 +511,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 )}
                 getCardDate={(row) => row.date}
               />
-              {deleting?.type === 'owner' && (
-                <DeleteConfirm
-                  title="Delete this owner payment?"
-                  onConfirm={() => deleteRow(`/api/projects/${project.id}/owner-payments/${deleting.id}`)}
-                  onCancel={() => setDeleting(null)}
-                />
-              )}
             </div>
           )}
 
@@ -533,7 +523,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 </div>
               </div>
               <ExpenseForm
-                key={editing?.id || 'owner-direct-new'}
+                key={editing?.id || 'owner-direct-new-' + formKey}
                 initial={editing as OwnerDirectPaymentRow | undefined}
                 onSubmit={submitOwnerDirect}
                 onCancel={editing ? () => setEditing(null) : undefined}
@@ -565,13 +555,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 )}
                 getCardDate={(row) => row.date}
               />
-              {deleting?.type === 'owner_direct' && (
-                <DeleteConfirm
-                  title="Delete this owner direct payment?"
-                  onConfirm={() => deleteRow(`/api/projects/${project.id}/owner-direct-payments/${deleting.id}`)}
-                  onCancel={() => setDeleting(null)}
-                />
-              )}
             </div>
           )}
 
@@ -584,7 +567,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 </div>
               </div>
               <PaymentForm
-                key={editing?.id || 'sub-new'}
+                key={editing?.id || 'sub-new-' + formKey}
                 initial={editing as SubcontractorPaymentRow | undefined}
                 showType
                 onSubmit={submitSub}
@@ -618,13 +601,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 )}
                 getCardDate={(row) => row.date}
               />
-              {deleting?.type === 'sub' && (
-                <DeleteConfirm
-                  title="Delete this subcontractor payment?"
-                  onConfirm={() => deleteRow(`/api/projects/${project.id}/subcontractor-payments/${deleting.id}`)}
-                  onCancel={() => setDeleting(null)}
-                />
-              )}
             </div>
           )}
 
@@ -637,7 +613,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 </div>
               </div>
               <ExpenseForm
-                key={editing?.id || 'exp-new'}
+                key={editing?.id || 'exp-new-' + formKey}
                 initial={editing as MaterialExpenseRow | undefined}
                 onSubmit={submitExpense}
                 onCancel={editing ? () => setEditing(null) : undefined}
@@ -669,13 +645,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 )}
                 getCardDate={(row) => row.date}
               />
-              {deleting?.type === 'expense' && (
-                <DeleteConfirm
-                  title="Delete this material expense?"
-                  onConfirm={() => deleteRow(`/api/projects/${project.id}/material-expenses/${deleting.id}`)}
-                  onCancel={() => setDeleting(null)}
-                />
-              )}
             </div>
           )}
 
@@ -743,7 +712,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 </div>
               </div>
               <ExpenseForm
-                key={editing?.id || 'misc-new'}
+                key={editing?.id || 'misc-new-' + formKey}
                 initial={editing as MiscellaneousExpenseRow | undefined}
                 onSubmit={submitMisc}
                 onCancel={editing ? () => setEditing(null) : undefined}
@@ -775,13 +744,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 )}
                 getCardDate={(row) => row.date}
               />
-              {deleting?.type === 'misc' && (
-                <DeleteConfirm
-                  title="Delete this miscellaneous expense?"
-                  onConfirm={() => deleteRow(`/api/projects/${project.id}/misc-expenses/${deleting.id}`)}
-                  onCancel={() => setDeleting(null)}
-                />
-              )}
             </div>
           )}
 
@@ -794,7 +756,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 </div>
               </div>
               <ExpenseForm
-                key={editing?.id || 'commission-new'}
+                key={editing?.id || 'commission-new-' + formKey}
                 initial={editing as CommissionPayoutRow | undefined}
                 hideDescription
                 onSubmit={submitCommissionPayout}
@@ -823,17 +785,61 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 )}
                 getCardDate={(row) => row.date}
               />
-              {deleting?.type === 'commission_payout' && (
-                <DeleteConfirm
-                  title="Delete this commission payout?"
-                  onConfirm={() => deleteRow(`/api/projects/${project.id}/commission-payouts/${deleting.id}`)}
-                  onCancel={() => setDeleting(null)}
-                />
-              )}
             </div>
           )}
         </div>
       </Card>
+
+      {/* Delete confirmations — rendered outside backdrop-filter elements to avoid Chrome fixed-positioning bug */}
+      {deleting?.type === 'project' && (
+        <DeleteConfirm
+          title="Are you sure you want to delete this project and all its records?"
+          onConfirm={handleDeleteProject}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
+      {deleting?.type === 'owner' && (
+        <DeleteConfirm
+          title="Delete this owner payment?"
+          onConfirm={() => deleteRow(`/api/projects/${project.id}/owner-payments/${deleting.id}`)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
+      {deleting?.type === 'owner_direct' && (
+        <DeleteConfirm
+          title="Delete this owner direct payment?"
+          onConfirm={() => deleteRow(`/api/projects/${project.id}/owner-direct-payments/${deleting.id}`)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
+      {deleting?.type === 'sub' && (
+        <DeleteConfirm
+          title="Delete this subcontractor payment?"
+          onConfirm={() => deleteRow(`/api/projects/${project.id}/subcontractor-payments/${deleting.id}`)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
+      {deleting?.type === 'expense' && (
+        <DeleteConfirm
+          title="Delete this material expense?"
+          onConfirm={() => deleteRow(`/api/projects/${project.id}/material-expenses/${deleting.id}`)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
+      {deleting?.type === 'misc' && (
+        <DeleteConfirm
+          title="Delete this miscellaneous expense?"
+          onConfirm={() => deleteRow(`/api/projects/${project.id}/misc-expenses/${deleting.id}`)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
+      {deleting?.type === 'commission_payout' && (
+        <DeleteConfirm
+          title="Delete this commission payout?"
+          onConfirm={() => deleteRow(`/api/projects/${project.id}/commission-payouts/${deleting.id}`)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
     </>
   );
 }
