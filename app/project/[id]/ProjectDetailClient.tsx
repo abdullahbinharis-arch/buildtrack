@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { TabNav } from '@/components/TabNav';
 import { PaymentForm, PaymentFormData } from '@/components/PaymentForm';
@@ -8,7 +8,6 @@ import { ExpenseForm, ExpenseFormData } from '@/components/ExpenseForm';
 import { ProjectForm } from '@/components/ProjectForm';
 import { DataTable } from '@/components/DataTable';
 import { DeleteConfirm } from '@/components/DeleteConfirm';
-import { Button } from '@/components/ui/Button';
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -18,6 +17,7 @@ import {
   HardHat,
   Trash2,
   Pencil,
+  Upload,
   Wallet,
   Users,
   Package,
@@ -25,7 +25,7 @@ import {
   Percent,
 } from 'lucide-react';
 
-const TABS = ['All Transactions', 'Owner Payments', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Commission Payout'];
+const TABS = ['All Transactions', 'Owner Payment Received', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Commission Payout'];
 
 export interface ProjectWithRecords {
   id: string;
@@ -85,6 +85,9 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const [editing, setEditing] = useState<OwnerPaymentRow | OwnerDirectPaymentRow | SubcontractorPaymentRow | MaterialExpenseRow | CommissionPayoutRow | null>(null);
   const [deleting, setDeleting] = useState<{ type: 'project' | 'owner' | 'owner_direct' | 'sub' | 'expense' | 'commission_payout'; id: string } | null>(null);
   const [editingProject, setEditingProject] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ created: number; total: number } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const hasKey = sessionStorage.getItem('buildtrack_key');
@@ -106,7 +109,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const subCost = project.subcontractor_payments.reduce((s, p) => s + p.amount, 0);
   const matCost = project.material_expenses.reduce((s, p) => s + p.amount, 0);
   const totalCost = subCost + matCost + directCost;
-  const profit = received - totalCost;
+  const profit = received - (subCost + matCost);
   const commissionReceivable = (totalCost * project.commission_rate) / 100;
   const commissionPaid = project.commission_payouts.reduce((s, p) => s + p.amount, 0);
   const commissionPayable = commissionReceivable - commissionPaid;
@@ -119,6 +122,34 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     });
     setEditingProject(false);
     fetchProject();
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await apiFetch(`/api/projects/${project.id}/import`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setImportResult({ created: data.created, total: data.total });
+        fetchProject();
+      } else {
+        alert(`Import failed: ${data.error}`);
+      }
+    } catch {
+      alert('Import failed — check console');
+    } finally {
+      setImporting(false);
+      // Reset file input so the same file can be re-uploaded
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleDeleteProject = async () => {
@@ -250,7 +281,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const editFromAll = (row: typeof allTransactions[number]) => {
     switch (row.category) {
       case 'Owner Payment':
-        setActiveTab('Owner Payments');
+        setActiveTab('Owner Payment Received');
         setEditing(row as OwnerPaymentRow);
         break;
       case 'Owner Direct':
@@ -275,7 +306,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const deleteFromAll = (row: typeof allTransactions[number]) => {
     switch (row.category) {
       case 'Owner Payment':
-        setActiveTab('Owner Payments');
+        setActiveTab('Owner Payment Received');
         setDeleting({ type: 'owner', id: row.id });
         break;
       case 'Owner Direct':
@@ -333,6 +364,21 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               Edit
             </button>
             <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-white/80 bg-white/50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 disabled:opacity-50 sm:text-sm"
+            >
+              <Upload className="h-4 w-4" />
+              {importing ? 'Importing…' : 'Import CSV'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleImport}
+              className="hidden"
+            />
+            <button
               onClick={() => setDeleting({ type: 'project', id: project.id })}
               className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-rose-200/80 bg-rose-50/50 px-3.5 py-2 text-xs font-semibold text-rose-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-rose-50/80 sm:text-sm"
             >
@@ -378,18 +424,26 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         )}
       </div>
 
+      {/* Import result banner */}
+      {importResult && (
+        <div className="mt-4 rounded-xl bg-emerald-50/90 px-4 py-3 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200/60 backdrop-blur-sm">
+          Imported {importResult.created} of {importResult.total} transactions successfully.
+          <button onClick={() => setImportResult(null)} className="ml-3 text-emerald-600 underline hover:text-emerald-800">Dismiss</button>
+        </div>
+      )}
+
       {/* Tabs */}
       <Card className="mt-6 overflow-hidden p-0">
-        <div className="border-b border-white/60 bg-white/40 px-3 pt-2 sm:px-4">
+        <div className="bg-white/40 px-3 pt-3 pb-1 sm:px-4">
           <TabNav tabs={TABS} active={activeTab} onChange={setActiveTab} />
         </div>
 
         <div className="p-4 sm:p-5">
-          {activeTab === 'Owner Payments' && (
+          {activeTab === 'Owner Payment Received' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Owner Payments</CardTitle>
+                  <CardTitle>Owner Payment Received</CardTitle>
                   <CardDescription className="hidden sm:block">Money received from the project owner</CardDescription>
                 </div>
               </div>
@@ -407,6 +461,20 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 rows={project.owner_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'owner', id: r.id })}
+                renderCard={(row) => (
+                  <>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-white/60 backdrop-blur-sm">
+                        Owner Payment
+                      </span>
+                      <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
+                    </div>
+                    <p className="text-lg font-bold text-emerald-600">
+                      + {formatCurrency(row.amount)}
+                    </p>
+                  </>
+                )}
+                getCardDate={(row) => row.date}
               />
               {deleting?.type === 'owner' && (
                 <DeleteConfirm
@@ -441,6 +509,23 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 rows={project.owner_direct_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'owner_direct', id: r.id })}
+                renderCard={(row) => (
+                  <>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-rose-100/80 px-2.5 py-0.5 text-xs font-semibold text-rose-700 ring-1 ring-white/60 backdrop-blur-sm">
+                        Owner Direct
+                      </span>
+                      <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
+                    </div>
+                    {row.description && (
+                      <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
+                    )}
+                    <p className="text-lg font-bold text-rose-600">
+                      - {formatCurrency(row.amount)}
+                    </p>
+                  </>
+                )}
+                getCardDate={(row) => row.date}
               />
               {deleting?.type === 'owner_direct' && (
                 <DeleteConfirm
@@ -477,6 +562,23 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 rows={project.subcontractor_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'sub', id: r.id })}
+                renderCard={(row) => (
+                  <>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-amber-100/80 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-white/60 backdrop-blur-sm">
+                        {row.type}
+                      </span>
+                      <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
+                    </div>
+                    {row.description && (
+                      <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
+                    )}
+                    <p className="text-lg font-bold text-rose-600">
+                      - {formatCurrency(row.amount)}
+                    </p>
+                  </>
+                )}
+                getCardDate={(row) => row.date}
               />
               {deleting?.type === 'sub' && (
                 <DeleteConfirm
@@ -511,6 +613,23 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 rows={project.material_expenses}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'expense', id: r.id })}
+                renderCard={(row) => (
+                  <>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-blue-100/80 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-white/60 backdrop-blur-sm">
+                        Material
+                      </span>
+                      <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
+                    </div>
+                    {row.description && (
+                      <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
+                    )}
+                    <p className="text-lg font-bold text-rose-600">
+                      - {formatCurrency(row.amount)}
+                    </p>
+                  </>
+                )}
+                getCardDate={(row) => row.date}
               />
               {deleting?.type === 'expense' && (
                 <DeleteConfirm
@@ -540,6 +659,38 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 rows={allTransactions}
                 onEdit={editFromAll}
                 onDelete={deleteFromAll}
+                renderCard={(row) => {
+                  const isIncome = row.category === 'Owner Payment';
+                  const categoryColors: Record<string, string> = {
+                    'Owner Payment': 'bg-emerald-100/80 text-emerald-700',
+                    'Owner Direct': 'bg-rose-100/80 text-rose-700',
+                    'Subcontractor': 'bg-amber-100/80 text-amber-700',
+                    'Material': 'bg-blue-100/80 text-blue-700',
+                    'Commission Payout': 'bg-purple-100/80 text-purple-700',
+                  };
+                  return (
+                    <>
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <span
+                          className={
+                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-white/60 backdrop-blur-sm ' +
+                            (categoryColors[row.category] || 'bg-slate-100/80 text-slate-700')
+                          }
+                        >
+                          {row.category}
+                        </span>
+                        <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
+                      </div>
+                      {row.description && (
+                        <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
+                      )}
+                      <p className={`text-lg font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {formatCurrency(row.amount)}
+                      </p>
+                    </>
+                  );
+                }}
+                getCardDate={(row) => row.date}
               />
             </div>
           )}
@@ -567,6 +718,20 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 rows={project.commission_payouts}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'commission_payout', id: r.id })}
+                renderCard={(row) => (
+                  <>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-purple-100/80 px-2.5 py-0.5 text-xs font-semibold text-purple-700 ring-1 ring-white/60 backdrop-blur-sm">
+                        Commission
+                      </span>
+                      <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
+                    </div>
+                    <p className="text-lg font-bold text-rose-600">
+                      - {formatCurrency(row.amount)}
+                    </p>
+                  </>
+                )}
+                getCardDate={(row) => row.date}
               />
               {deleting?.type === 'commission_payout' && (
                 <DeleteConfirm

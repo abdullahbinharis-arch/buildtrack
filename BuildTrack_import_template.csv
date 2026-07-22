@@ -1,0 +1,7 @@
+date,amount,transaction_type,description,sub_type
+2026-07-01,1000000,Owner Payment,First payment received,
+2026-07-10,450000,Subcontractor,Foundation work,Labour
+2026-07-15,320000,Material,Steel reinforcement bars,
+2026-07-20,180000,Owner Direct,Tiles - paid by owner,
+2026-08-01,50000,Commission Payout,,
+2026-08-05,800000,Owner Payment,Second milestone payment,
