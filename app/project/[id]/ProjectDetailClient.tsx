@@ -247,9 +247,18 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   };
 
   const deleteRow = async (endpoint: string) => {
-    await apiFetch(endpoint, { method: 'DELETE' });
-    setDeleting(null);
-    fetchProject();
+    try {
+      const res = await apiFetch(endpoint, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete');
+        return;
+      }
+      setDeleting(null);
+      fetchProject();
+    } catch {
+      alert('Failed to delete — check your connection');
+    }
   };
 
   const SummaryCard = ({
