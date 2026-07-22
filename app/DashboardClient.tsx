@@ -166,7 +166,7 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
             <Percent className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500">Commission Payable</p>
+            <p className="text-xs text-slate-500">Commission</p>
             <p className="text-lg font-bold text-brand-600">{formatCurrency(totals.commission)}</p>
           </div>
         </div>

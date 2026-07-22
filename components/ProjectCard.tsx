@@ -48,7 +48,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
 
           <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50/60 p-2.5 sm:p-3 ring-1 ring-emerald-100/70 backdrop-blur-sm">
-            <p className="text-xs text-slate-500">Commission Payable ({project.commission_rate}%)</p>
+            <p className="text-xs text-slate-500">Commission ({project.commission_rate}%)</p>
             <p className="text-sm font-semibold text-emerald-700">{formatCurrency(project.commission_payable)}</p>
           </div>
 
