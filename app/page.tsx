@@ -31,7 +31,7 @@ async function getProjects() {
       created_at: p.created_at.toISOString(),
       total_received: received,
       total_expenses: totalCost,
-      profit_loss: received - totalCost,
+      profit_loss: received - (subCost + matCost),
       commission_payable: commissionReceivable - commissionPaid,
     };
   });
