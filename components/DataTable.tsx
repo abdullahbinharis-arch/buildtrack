@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { Pencil, Trash2, MoreVertical } from 'lucide-react';
+import { useMemo } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 
 type DataTableRow = { id: string; date?: string };
@@ -21,59 +21,6 @@ interface DataTableProps<T extends DataTableRow = DataTableRow> {
   renderCard?: (row: T) => React.ReactNode;
   /** Used for date grouping in card view. Defaults to (row) => row.date */
   getCardDate?: (row: T) => string;
-}
-
-/* ── 3-dot action dropdown ── */
-function ActionMenu({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 active:bg-slate-200"
-        aria-label="Actions"
-      >
-        <MoreVertical className="h-5 w-5" />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 min-w-[150px] overflow-hidden rounded-xl bg-white shadow-xl shadow-slate-900/10 ring-1 ring-slate-200">
-            {onEdit && (
-              <button
-                onClick={() => { onEdit(); setOpen(false); }}
-                className="flex w-full items-center gap-2.5 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-600"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit
-              </button>
-            )}
-            {onDelete && (
-              <button
-                onClick={() => { onDelete(); setOpen(false); }}
-                className="flex w-full items-center gap-2.5 px-4 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
 }
 
 export function DataTable<T extends DataTableRow>({
@@ -128,15 +75,27 @@ export function DataTable<T extends DataTableRow>({
                     <div className="min-w-0 flex-1">
                       {renderCard(row)}
                     </div>
-                    {/* 3-dot menu */}
-                    {(onEdit || onDelete) && (
-                      <div className="-mr-1 -mt-1 shrink-0">
-                        <ActionMenu
-                          onEdit={onEdit ? () => onEdit(row) : undefined}
-                          onDelete={onDelete ? () => onDelete(row) : undefined}
-                        />
-                      </div>
-                    )}
+                    {/* Direct action buttons */}
+                    <div className="flex shrink-0 -mr-1 -mt-1">
+                      {onEdit && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onEdit(row); }}
+                          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-brand-50 hover:text-brand-600 active:bg-brand-100"
+                          aria-label="Edit"
+                        >
+                          <Pencil className="h-5 w-5" />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDelete(row); }}
+                          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 active:bg-red-100"
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
