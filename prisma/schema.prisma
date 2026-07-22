@@ -18,6 +18,7 @@ model Project {
   owner_direct_payments  OwnerDirectPayment[]
   subcontractor_payments SubcontractorPayment[]
   material_expenses      MaterialExpense[]
+  miscellaneous_expenses MiscellaneousExpense[]
   commission_payouts     CommissionPayout[]
 }
 
@@ -58,6 +59,15 @@ model SubcontractorPayment {
 }
 
 model MaterialExpense {
+  id          String   @id @default(uuid())
+  project_id  String
+  amount      Float
+  date        DateTime
+  description String?
+  project     Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+}
+
+model MiscellaneousExpense {
   id          String   @id @default(uuid())
   project_id  String
   amount      Float

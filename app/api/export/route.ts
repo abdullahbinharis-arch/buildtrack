@@ -51,6 +51,23 @@ export async function GET() {
       ]),
     ];
 
+    const miscExpenses = await prisma.miscellaneousExpense.findMany({
+      include: { project: true },
+      orderBy: { date: 'desc' },
+    });
+
+    const misc = [
+      ['id', 'project_id', 'project_name', 'date', 'amount', 'description'],
+      ...miscExpenses.map((e) => [
+        e.id,
+        e.project_id,
+        e.project.name,
+        formatDate(e.date),
+        e.amount,
+        e.description || '',
+      ]),
+    ];
+
     const expense = [
       ['id', 'project_id', 'project_name', 'date', 'amount', 'description'],
       ...materialExpenses.map((e) => [
@@ -92,6 +109,7 @@ export async function GET() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(joseph), 'Joseph');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expense), 'Expense');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ownerDirect), 'Owner Direct');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(misc), 'Misc');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(commission), 'Commission Payout');
 
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });

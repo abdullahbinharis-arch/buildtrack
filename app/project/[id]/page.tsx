@@ -16,6 +16,7 @@ async function getProject(id: string): Promise<ProjectWithRecords | null> {
       owner_direct_payments: { orderBy: { date: 'desc' } },
       subcontractor_payments: { orderBy: { date: 'desc' } },
       material_expenses: { orderBy: { date: 'desc' } },
+      miscellaneous_expenses: { orderBy: { date: 'desc' } },
       commission_payouts: { orderBy: { date: 'desc' } },
     },
   });
@@ -44,6 +45,10 @@ async function getProject(id: string): Promise<ProjectWithRecords | null> {
     commission_payouts: project.commission_payouts.map((p) => ({
       ...p,
       date: p.date.toISOString(),
+    })),
+    miscellaneous_expenses: project.miscellaneous_expenses.map((e) => ({
+      ...e,
+      date: e.date.toISOString(),
     })),
   };
 }

@@ -11,6 +11,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       owner_direct_payments: { orderBy: { date: 'desc' } },
       subcontractor_payments: { orderBy: { date: 'desc' } },
       material_expenses: { orderBy: { date: 'desc' } },
+      miscellaneous_expenses: { orderBy: { date: 'desc' } },
       commission_payouts: { orderBy: { date: 'desc' } },
     },
   });

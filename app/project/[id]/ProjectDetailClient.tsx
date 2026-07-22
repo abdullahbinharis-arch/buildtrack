@@ -25,7 +25,7 @@ import {
   Percent,
 } from 'lucide-react';
 
-const TABS = ['All Transactions', 'Owner Payment Received', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Commission Payout'];
+const TABS = ['All Transactions', 'Owner Payment Received', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Misc Expenses', 'Commission Payout'];
 
 export interface ProjectWithRecords {
   id: string;
@@ -36,6 +36,7 @@ export interface ProjectWithRecords {
   owner_direct_payments: OwnerDirectPaymentRow[];
   subcontractor_payments: SubcontractorPaymentRow[];
   material_expenses: MaterialExpenseRow[];
+  miscellaneous_expenses: MiscellaneousExpenseRow[];
   commission_payouts: CommissionPayoutRow[];
 }
 
@@ -74,6 +75,13 @@ interface CommissionPayoutRow {
   description: string | null;
 }
 
+interface MiscellaneousExpenseRow {
+  id: string;
+  date: string;
+  amount: number;
+  description: string | null;
+}
+
 interface ProjectDetailClientProps {
   initialProject: ProjectWithRecords;
 }
@@ -82,8 +90,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const router = useRouter();
   const [project, setProject] = useState<ProjectWithRecords>(initialProject);
   const [activeTab, setActiveTab] = useState(TABS[0]);
-  const [editing, setEditing] = useState<OwnerPaymentRow | OwnerDirectPaymentRow | SubcontractorPaymentRow | MaterialExpenseRow | CommissionPayoutRow | null>(null);
-  const [deleting, setDeleting] = useState<{ type: 'project' | 'owner' | 'owner_direct' | 'sub' | 'expense' | 'commission_payout'; id: string } | null>(null);
+  const [editing, setEditing] = useState<OwnerPaymentRow | OwnerDirectPaymentRow | SubcontractorPaymentRow | MaterialExpenseRow | MiscellaneousExpenseRow | CommissionPayoutRow | null>(null);
+  const [deleting, setDeleting] = useState<{ type: 'project' | 'owner' | 'owner_direct' | 'sub' | 'expense' | 'misc' | 'commission_payout'; id: string } | null>(null);
   const [editingProject, setEditingProject] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; total: number } | null>(null);
@@ -108,8 +116,9 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const directCost = project.owner_direct_payments.reduce((s, p) => s + p.amount, 0);
   const subCost = project.subcontractor_payments.reduce((s, p) => s + p.amount, 0);
   const matCost = project.material_expenses.reduce((s, p) => s + p.amount, 0);
-  const totalCost = subCost + matCost + directCost;
-  const profit = received - (subCost + matCost);
+  const miscCost = project.miscellaneous_expenses.reduce((s, p) => s + p.amount, 0);
+  const totalCost = subCost + matCost + miscCost + directCost;
+  const profit = received - (subCost + matCost + miscCost);
   const commissionReceivable = (totalCost * project.commission_rate) / 100;
   const commissionPaid = project.commission_payouts.reduce((s, p) => s + p.amount, 0);
   const commissionPayable = commissionReceivable - commissionPaid;
@@ -211,6 +220,19 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     fetchProject();
   };
 
+  const submitMisc = async (data: ExpenseFormData) => {
+    const url = editing
+      ? `/api/projects/${project.id}/misc-expenses/${editing.id}`
+      : `/api/projects/${project.id}/misc-expenses`;
+    await apiFetch(url, {
+      method: editing ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    setEditing(null);
+    fetchProject();
+  };
+
   const submitCommissionPayout = async (data: ExpenseFormData) => {
     const url = editing
       ? `/api/projects/${project.id}/commission-payouts/${editing.id}`
@@ -275,6 +297,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     ...project.owner_direct_payments.map((r) => ({ ...r, category: 'Owner Direct' })),
     ...project.subcontractor_payments.map((r) => ({ ...r, category: 'Subcontractor' })),
     ...project.material_expenses.map((r) => ({ ...r, category: 'Material' })),
+    ...project.miscellaneous_expenses.map((r) => ({ ...r, category: 'Misc' })),
     ...project.commission_payouts.map((r) => ({ ...r, category: 'Commission Payout' })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -295,6 +318,10 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       case 'Material':
         setActiveTab('Material Expenses');
         setEditing(row as MaterialExpenseRow);
+        break;
+      case 'Misc':
+        setActiveTab('Misc Expenses');
+        setEditing(row as MiscellaneousExpenseRow);
         break;
       case 'Commission Payout':
         setActiveTab('Commission Payout');
@@ -320,6 +347,10 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       case 'Material':
         setActiveTab('Material Expenses');
         setDeleting({ type: 'expense', id: row.id });
+        break;
+      case 'Misc':
+        setActiveTab('Misc Expenses');
+        setDeleting({ type: 'misc', id: row.id });
         break;
       case 'Commission Payout':
         setActiveTab('Commission Payout');
@@ -664,6 +695,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     'Owner Direct': 'bg-rose-100/80 text-rose-700',
                     'Subcontractor': 'bg-amber-100/80 text-amber-700',
                     'Material': 'bg-blue-100/80 text-blue-700',
+                    'Misc': 'bg-slate-200/80 text-slate-700',
                     'Commission Payout': 'bg-purple-100/80 text-purple-700',
                   };
                   return (
@@ -690,6 +722,57 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 }}
                 getCardDate={(row) => row.date}
               />
+            </div>
+          )}
+
+          {activeTab === 'Misc Expenses' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Misc Expenses</CardTitle>
+                  <CardDescription className="hidden sm:block">Other project-related costs and expenses</CardDescription>
+                </div>
+              </div>
+              <ExpenseForm
+                key={editing?.id || 'misc-new'}
+                initial={editing as MiscellaneousExpenseRow | undefined}
+                onSubmit={submitMisc}
+                onCancel={editing ? () => setEditing(null) : undefined}
+              />
+              <DataTable
+                columns={[
+                  { key: 'date', label: 'Date', render: dateCell },
+                  { key: 'description', label: 'Description' },
+                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                ]}
+                rows={project.miscellaneous_expenses}
+                onEdit={(r) => setEditing(r)}
+                onDelete={(r) => setDeleting({ type: 'misc', id: r.id })}
+                renderCard={(row) => (
+                  <>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center rounded-full bg-slate-200/80 px-2.5 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-white/60 backdrop-blur-sm">
+                        Misc
+                      </span>
+                      <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
+                    </div>
+                    {row.description && (
+                      <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
+                    )}
+                    <p className="text-lg font-bold text-rose-600">
+                      - {formatCurrency(row.amount)}
+                    </p>
+                  </>
+                )}
+                getCardDate={(row) => row.date}
+              />
+              {deleting?.type === 'misc' && (
+                <DeleteConfirm
+                  title="Delete this miscellaneous expense?"
+                  onConfirm={() => deleteRow(`/api/projects/${project.id}/misc-expenses/${deleting.id}`)}
+                  onCancel={() => setDeleting(null)}
+                />
+              )}
             </div>
           )}
 

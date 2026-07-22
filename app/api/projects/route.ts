@@ -8,6 +8,7 @@ export async function GET() {
       owner_direct_payments: true,
       subcontractor_payments: true,
       material_expenses: true,
+      miscellaneous_expenses: true,
       commission_payouts: true,
     },
     orderBy: { created_at: 'desc' },
@@ -18,7 +19,8 @@ export async function GET() {
     const directCost = p.owner_direct_payments.reduce((s, x) => s + x.amount, 0);
     const subCost = p.subcontractor_payments.reduce((s, x) => s + x.amount, 0);
     const matCost = p.material_expenses.reduce((s, x) => s + x.amount, 0);
-    const totalCost = subCost + matCost + directCost;
+    const miscCost = p.miscellaneous_expenses.reduce((s, x) => s + x.amount, 0);
+    const totalCost = subCost + matCost + miscCost + directCost;
     const commissionReceivable = (totalCost * p.commission_rate) / 100;
     const commissionPaid = p.commission_payouts.reduce((s, x) => s + x.amount, 0);
     return {
@@ -29,7 +31,7 @@ export async function GET() {
       created_at: p.created_at,
       total_received: received,
       total_expenses: totalCost,
-      profit_loss: received - (subCost + matCost),
+      profit_loss: received - (subCost + matCost + miscCost),
       commission_payable: commissionReceivable - commissionPaid,
     };
   });

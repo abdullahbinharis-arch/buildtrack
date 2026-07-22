@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 
 interface Params { params: { id: string } }
 
-const VALID_TYPES = ['Owner Payment', 'Owner Direct', 'Subcontractor', 'Material', 'Commission Payout'] as const;
+const VALID_TYPES = ['Owner Payment', 'Owner Direct', 'Subcontractor', 'Material', 'Misc', 'Commission Payout'] as const;
 const VALID_TYPES_SET = new Set<string>(VALID_TYPES);
 const VALID_SUB_TYPES = ['Labour', 'Labour+Material'];
 const VALID_SUB_TYPES_SET = new Set<string>(VALID_SUB_TYPES);
@@ -84,6 +84,11 @@ export async function POST(req: NextRequest, { params }: Params) {
             break;
           case 'Material':
             await prisma.materialExpense.create({
+              data: { project_id: params.id, amount, date: parsedDate, description },
+            });
+            break;
+          case 'Misc':
+            await prisma.miscellaneousExpense.create({
               data: { project_id: params.id, amount, date: parsedDate, description },
             });
             break;
