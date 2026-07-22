@@ -12,12 +12,14 @@ import { Card, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { apiFetch } from '@/lib/fetch-client';
+import { generateProjectReport } from '@/lib/generate-report';
 import {
   ArrowLeft,
   HardHat,
   Trash2,
   Pencil,
   Upload,
+  FileText,
   Wallet,
   Users,
   Package,
@@ -160,6 +162,11 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       // Reset file input so the same file can be re-uploaded
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleDownloadReport = () => {
+    const doc = generateProjectReport(project);
+    doc.save(`${project.name.replace(/\s+/g, '_')}_Report.pdf`);
   };
 
   const handleDeleteProject = async () => {
@@ -417,6 +424,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
             >
               <Upload className="h-4 w-4" />
               {importing ? 'Importing…' : 'Import CSV'}
+            </button>
+            <button
+              onClick={handleDownloadReport}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-white/80 bg-white/50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:text-sm"
+            >
+              <FileText className="h-4 w-4" />
+              Report
             </button>
             <input
               ref={fileInputRef}
