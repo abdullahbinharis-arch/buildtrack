@@ -86,10 +86,10 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   doc.setTextColor(...darkText);
 
   const summaryItems = [
-    { label: 'Contract Value', value: pdfCurrency(data.estimated_value), positive: true },
+    ...(data.estimated_value > 0 ? [{ label: 'Contract Value', value: pdfCurrency(data.estimated_value), positive: true }] : []),
     { label: 'Amount Received', value: pdfCurrency(calcs.received), positive: true },
     { label: 'Total Cost', value: pdfCurrency(calcs.totalCost), positive: false },
-    { label: 'Balance', value: pdfCurrency(Math.abs(calcs.profit)), positive: calcs.profit >= 0 },
+    { label: 'Balance in Hand', value: pdfCurrency(Math.abs(calcs.profit)), positive: calcs.profit >= 0 },
   ];
 
   const boxW = (contentWidth - 6) / 2;
