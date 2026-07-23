@@ -35,9 +35,9 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   const contentWidth = pageWidth - margin * 2;
   const calcs = getCalculations(data);
 
-  const brandColor: [number, number, number] = [79, 70, 229];
-  const darkText = '#1e293b';
-  const mutedText = '#64748b';
+  const brandColor: [number, number, number] = [79, 70, 229]; // indigo-600
+  const darkText: [number, number, number] = [30, 41, 59];    // slate-800
+  const mutedText: [number, number, number] = [100, 116, 139]; // slate-500
 
   function sectionTitle(text: string, y: number) {
     doc.setFont('helvetica', 'bold');
@@ -58,14 +58,14 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   doc.setFontSize(10);
   doc.text('BuildTrack', margin, 5.5);
 
-  doc.setTextColor(darkText as any);
+  doc.setTextColor(...darkText);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
   doc.text('Project Financial Report', margin, 24);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(11);
-  doc.setTextColor(mutedText as any);
+  doc.setTextColor(...mutedText);
   doc.text(`Project: ${data.name}`, margin, 33);
   doc.text(`Generated: ${formatDate(new Date().toISOString())}`, margin, 40);
 
@@ -77,7 +77,7 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   let sy = 53;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(darkText as any);
+  doc.setTextColor(...darkText);
 
   const summaryItems = [
     { label: 'Contract Value', value: formatCurrency(data.estimated_value) },
@@ -102,7 +102,7 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(mutedText as any);
+    doc.setTextColor(...mutedText);
     doc.text(item.label, bx + 4, by + 7);
 
     doc.setFont('helvetica', 'bold');
@@ -129,7 +129,7 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
       ['Total Cost', formatCurrency(calcs.totalCost)],
     ],
     theme: 'plain',
-    styles: { fontSize: 9, textColor: [30, 41, 59], cellPadding: { top: 2, bottom: 2, left: 0, right: 0 } },
+    styles: { fontSize: 9, textColor: [30, 41, 59] as [number, number, number], cellPadding: { top: 2, bottom: 2, left: 0, right: 0 } },
     columnStyles: {
       0: { cellWidth: contentWidth * 0.6 },
       1: { cellWidth: contentWidth * 0.4, halign: 'right' },
@@ -137,13 +137,13 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
     didParseCell: (data) => {
       if (data.section === 'body' && data.row.index === 4) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.textColor = [220, 38, 38];
+        data.cell.styles.textColor = [220, 38, 38] as [number, number, number];
       }
     },
   });
 
   // ── Transaction tables ──
-  let tableY = (doc as any).lastAutoTable.finalY + 10;
+  let tableY = doc.lastAutoTable.finalY + 10;
 
   function addTable(
     title: string,
@@ -171,28 +171,28 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
         fillColor: brandColor,
         fontSize: 8,
         fontStyle: 'bold',
-        textColor: [255, 255, 255],
+        textColor: [255, 255, 255] as [number, number, number],
         cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
       },
       styles: {
         fontSize: 8,
-        textColor: [30, 41, 59],
+        textColor: [30, 41, 59] as [number, number, number],
         cellPadding: { top: 2, bottom: 2, left: 3, right: 3 },
       },
       columnStyles: {
         0: { cellWidth: 28 },
         1: { cellWidth: 30 },
-        2: { cellWidth: 'auto' },
-        3: { cellWidth: 30, halign: 'right' },
+        2: { cellWidth: 'auto' as const },
+        3: { cellWidth: 30, halign: 'right' as const },
       },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index === 3) {
-          data.cell.styles.textColor = incomeCol ? [15, 118, 110] : [220, 38, 38];
+          data.cell.styles.textColor = incomeCol ? [15, 118, 110] as [number, number, number] : [220, 38, 38] as [number, number, number];
         }
       },
     });
 
-    tableY = (doc as any).lastAutoTable.finalY + 6;
+    tableY = doc.lastAutoTable.finalY + 6;
   }
 
   tableY += 4;
