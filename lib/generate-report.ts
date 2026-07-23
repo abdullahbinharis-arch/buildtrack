@@ -13,7 +13,6 @@ interface ProjectReportData {
   commission_payouts: { id: string; date: string; amount: number; description: string | null }[];
 }
 
-// PDF-safe formatters (Helvetica only supports basic Latin characters)
 function pdfCurrency(amount: number): string {
   return 'Rs.' + Math.round(amount).toLocaleString('en-IN');
 }
@@ -32,10 +31,7 @@ function getCalculations(data: ProjectReportData) {
   const miscCost = data.miscellaneous_expenses.reduce((s, p) => s + p.amount, 0);
   const totalCost = subCost + matCost + miscCost + directCost;
   const profit = received - (subCost + matCost + miscCost);
-  const commissionReceivable = (totalCost * data.commission_rate) / 100;
-  const commissionPaid = data.commission_payouts.reduce((s, p) => s + p.amount, 0);
-  const commissionPayable = commissionReceivable - commissionPaid;
-  return { received, directCost, subCost, matCost, miscCost, totalCost, profit, commissionReceivable, commissionPaid, commissionPayable };
+  return { received, directCost, subCost, matCost, miscCost, totalCost, profit };
 }
 
 export function generateProjectReport(data: ProjectReportData): jsPDF {
@@ -83,18 +79,17 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   doc.setLineWidth(0.5);
   doc.line(margin, 46, pageWidth - margin, 46);
 
-  // ── Summary boxes ──
+  // ── Summary boxes (4 boxes in 2x2 grid, no commission) ──
   let sy = 53;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkText);
 
   const summaryItems = [
-    { label: 'Contract Value', value: pdfCurrency(data.estimated_value) },
-    { label: 'Amount Received', value: pdfCurrency(calcs.received) },
-    { label: 'Total Cost', value: pdfCurrency(calcs.totalCost) },
-    { label: 'Balance', value: pdfCurrency(Math.abs(calcs.profit)), prefix: calcs.profit >= 0 ? 'Profit: ' : 'Loss: ' },
-    { label: 'Commission (' + data.commission_rate + '%)', value: pdfCurrency(Math.abs(calcs.commissionPayable)), prefix: calcs.commissionPayable >= 0 ? 'Receivable: ' : 'Payable: ' },
+    { label: 'Contract Value', value: pdfCurrency(data.estimated_value), positive: true },
+    { label: 'Amount Received', value: pdfCurrency(calcs.received), positive: true },
+    { label: 'Total Cost', value: pdfCurrency(calcs.totalCost), positive: false },
+    { label: 'Balance', value: pdfCurrency(Math.abs(calcs.profit)), positive: calcs.profit >= 0 },
   ];
 
   const boxW = (contentWidth - 6) / 2;
@@ -117,13 +112,11 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    const prefix = item.prefix || '';
-    const isPositive = item.label === 'Balance' ? calcs.profit >= 0 : true;
-    doc.setTextColor(isPositive ? 15 : 220, isPositive ? 118 : 38, isPositive ? 110 : 38);
-    doc.text(prefix + item.value, bx + 4, by + 18);
+    doc.setTextColor(item.positive ? 15 : 220, item.positive ? 118 : 38, item.positive ? 110 : 38);
+    doc.text(item.value, bx + 4, by + 18);
   });
 
-  // ── Cost breakdown table ──
+  // ── Cost breakdown table (positioned after the 2 rows of boxes) ──
   sy = sy + 2 * (boxH + 4) + 12;
   const costY = sectionTitle('Cost Breakdown', sy) + 2;
 
