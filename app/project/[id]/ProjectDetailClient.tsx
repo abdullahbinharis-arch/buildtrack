@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { TabNav } from '@/components/TabNav';
 import { PaymentForm, PaymentFormData } from '@/components/PaymentForm';
@@ -125,6 +125,19 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const commissionReceivable = (totalCost * project.commission_rate) / 100;
   const commissionPaid = project.commission_payouts.reduce((s, p) => s + p.amount, 0);
   const commissionPayable = commissionReceivable - commissionPaid;
+
+  const lastUpdated = useMemo(() => {
+    const allDates = [
+      ...project.owner_payments.map((r) => r.date),
+      ...project.owner_direct_payments.map((r) => r.date),
+      ...project.subcontractor_payments.map((r) => r.date),
+      ...project.material_expenses.map((r) => r.date),
+      ...project.miscellaneous_expenses.map((r) => r.date),
+      ...project.commission_payouts.map((r) => r.date),
+    ];
+    if (allDates.length === 0) return null;
+    return allDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+  }, [project]);
 
   const handleUpdateProject = async (data: { name: string; estimated_value: number; commission_rate: number }) => {
     await apiFetch(`/api/projects/${project.id}`, {
@@ -407,6 +420,11 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 <Badge variant="info">Active</Badge>
               </div>
               <p className="text-xs text-slate-500">Construction site financial overview</p>
+              {lastUpdated && (
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Last activity: {formatDate(lastUpdated)}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
