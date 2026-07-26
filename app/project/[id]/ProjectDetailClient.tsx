@@ -19,6 +19,7 @@ import {
   Trash2,
   Pencil,
   Upload,
+  Download,
   FileText,
   Wallet,
   Users,
@@ -180,6 +181,17 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const handleDownloadReport = () => {
     const doc = generateProjectReport(project);
     doc.save(`${project.name.replace(/\s+/g, '_')}_Report.pdf`);
+  };
+
+  const handleExportExcel = async () => {
+    const res = await apiFetch('/api/export');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BuildTrack_Backup_${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const handleDeleteProject = async () => {
@@ -449,6 +461,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
             >
               <FileText className="h-4 w-4" />
               Report
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-white/80 bg-white/50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:text-sm"
+            >
+              <Download className="h-4 w-4" />
+              Excel
             </button>
             <input
               ref={fileInputRef}
