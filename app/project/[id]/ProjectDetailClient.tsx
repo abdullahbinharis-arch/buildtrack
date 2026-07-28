@@ -419,13 +419,61 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
   return (
     <>
-      <button
-        onClick={() => router.push('/')}
-        className="mb-3 flex min-h-[44px] items-center gap-1.5 pl-0 text-sm font-medium text-slate-500 transition-colors hover:text-brand-600"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back
-      </button>
+      <div className="mb-3 flex items-center gap-1" ref={projectSwitcherRef}>
+        <button
+          onClick={() => router.push('/')}
+          className="flex min-h-[44px] items-center gap-1.5 pl-0 text-sm font-medium text-slate-500 transition-colors hover:text-brand-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+        <span className="text-slate-300">|</span>
+        <div className="relative">
+          <button
+            onClick={() => setShowProjectSwitcher(!showProjectSwitcher)}
+            className="flex min-h-[44px] items-center gap-1 rounded-lg px-2 text-sm font-medium text-slate-600 transition-colors hover:text-brand-600"
+          >
+            <HardHat className="h-4 w-4" />
+            <span className="max-w-[120px] truncate sm:max-w-[200px]">{project.name}</span>
+            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+          </button>
+          {showProjectSwitcher && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setShowProjectSwitcher(false)} />
+              <div className="absolute left-0 z-40 mt-1 w-56 rounded-xl border border-white/80 bg-white p-1.5 shadow-xl shadow-slate-900/10 ring-1 ring-white/70 backdrop-blur-xl">
+                <div className="mb-0.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Switch Project</div>
+                {projectList.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setShowProjectSwitcher(false);
+                      if (p.id !== project.id) router.push(`/project/${p.id}`);
+                    }}
+                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                      p.id === project.id
+                        ? 'bg-brand-50 text-brand-700 font-semibold'
+                        : 'text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <HardHat className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{p.name}</span>
+                    {p.id === project.id && <span className="ml-auto text-[10px] text-brand-500">Current</span>}
+                  </button>
+                ))}
+                <div className="mt-1 border-t border-white/70 pt-1">
+                  <button
+                    onClick={() => { setShowProjectSwitcher(false); router.push('/'); }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-500 transition-colors hover:bg-slate-100"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    Back to Dashboard
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Project header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/95 via-slate-50/95 to-white/95 p-4 shadow-xl shadow-slate-900/5 ring-1 ring-white/80 backdrop-blur-2xl sm:rounded-3xl sm:p-6">
@@ -449,52 +497,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               )}
             </div>
           </div>
-          <div className="flex gap-2" ref={projectSwitcherRef}>
-            <div className="relative">
-              <button
-                onClick={() => setShowProjectSwitcher(!showProjectSwitcher)}
-                className="flex min-h-[44px] items-center gap-1 rounded-xl border border-white/80 bg-white/50 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:text-sm"
-              >
-                <HardHat className="h-4 w-4 shrink-0" />
-                <span className="max-w-[100px] truncate sm:max-w-[150px]">{project.name}</span>
-                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-              </button>
-              {showProjectSwitcher && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setShowProjectSwitcher(false)} />
-                  <div className="absolute right-0 z-40 mt-1 w-56 rounded-xl border border-white/80 bg-white p-1.5 shadow-xl shadow-slate-900/10 ring-1 ring-white/70 backdrop-blur-xl">
-                    <div className="mb-0.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Switch Project</div>
-                    {projectList.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => {
-                          setShowProjectSwitcher(false);
-                          if (p.id !== project.id) router.push(`/project/${p.id}`);
-                        }}
-                        className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                          p.id === project.id
-                            ? 'bg-brand-50 text-brand-700 font-semibold'
-                            : 'text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <HardHat className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{p.name}</span>
-                        {p.id === project.id && <span className="ml-auto text-[10px] text-brand-500">Current</span>}
-                      </button>
-                    ))}
-                    <div className="mt-1 border-t border-white/70 pt-1">
-                      <button
-                        onClick={() => { setShowProjectSwitcher(false); router.push('/'); }}
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-500 transition-colors hover:bg-slate-100"
-                      >
-                        <ArrowLeft className="h-3.5 w-3.5" />
-                        Back to Dashboard
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+          <div className="flex gap-2">
             <button
               onClick={() => setEditingProject(true)}
               className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-white/80 bg-white/50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:text-sm"
