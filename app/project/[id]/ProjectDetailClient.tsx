@@ -10,8 +10,10 @@ import { DataTable } from '@/components/DataTable';
 import { DeleteConfirm } from '@/components/DeleteConfirm';
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { cn, formatCurrency, formatDate } from '@/lib/utils';
 import { CATEGORY_STYLES, categoryBadgeClass, type CategoryKey } from '@/lib/category-styles';
+import { findDuplicateIds, findDuplicateMatch } from '@/lib/find-duplicates';
+import { DuplicateConfirm } from '@/components/DuplicateConfirm';
 import { apiFetch } from '@/lib/fetch-client';
 import { generateProjectReport } from '@/lib/generate-report';
 import {
@@ -150,6 +152,42 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     if (allDates.length === 0) return null;
     return allDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
   }, [project]);
+
+  /* IDs of rows that look like possible duplicates (same category + amount, ≤3 days apart) */
+  const dupIds = useMemo(() => {
+    const ids = new Set<string>();
+    const groups = [
+      project.owner_payments,
+      project.owner_direct_payments,
+      project.subcontractor_payments,
+      project.material_expenses,
+      project.miscellaneous_expenses,
+      project.commission_payouts,
+    ];
+    groups.forEach((g) => findDuplicateIds(g).forEach((id) => ids.add(id)));
+    return ids;
+  }, [project]);
+
+  const DuplicateBadge = () => (
+    <span className="ml-2 inline-flex items-center rounded-full bg-amber-100/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-white/60">
+      Possible duplicate
+    </span>
+  );
+
+  const AmountCell = ({ category, row }: { category: CategoryKey; row: { id: string; amount: number } }) => {
+    const style = CATEGORY_STYLES[category];
+    return (
+      <span className={`font-semibold ${style.amountClass}`}>
+        {style.sign} {formatCurrency(row.amount)}
+        {dupIds.has(row.id) && <DuplicateBadge />}
+      </span>
+    );
+  };
+
+  const rowAccent = (category: CategoryKey) => (row: { id: string }) =>
+    cn(CATEGORY_STYLES[category].rowClass, dupIds.has(row.id) && 'bg-amber-50/70');
+
+  const cardTint = (row: { id: string }) => (dupIds.has(row.id) ? 'bg-amber-50/80' : '');
 
   const handleUpdateProject = async (data: { name: string; estimated_value: number; commission_rate: number }) => {
     await apiFetch(`/api/projects/${project.id}`, {
@@ -601,20 +639,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <DataTable
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
-                  {
-                    key: 'amount',
-                    label: 'Amount',
-                    render: (r) => (
-                      <span className={`font-semibold ${CATEGORY_STYLES['Owner Payment'].amountClass}`}>
-                        {CATEGORY_STYLES['Owner Payment'].sign} {formatCurrency(r.amount)}
-                      </span>
-                    ),
-                  },
+                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Owner Payment" row={r} /> },
                 ]}
                 rows={project.owner_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'owner', id: r.id })}
-                getRowClassName={() => CATEGORY_STYLES['Owner Payment'].rowClass}
+                getRowClassName={rowAccent('Owner Payment')}
+                getCardClassName={cardTint}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
@@ -625,6 +656,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     </div>
                     <p className={`text-lg font-bold ${CATEGORY_STYLES['Owner Payment'].amountClass}`}>
                       {CATEGORY_STYLES['Owner Payment'].sign} {formatCurrency(row.amount)}
+                      {dupIds.has(row.id) && <DuplicateBadge />}
                     </p>
                   </>
                 )}
@@ -651,20 +683,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  {
-                    key: 'amount',
-                    label: 'Amount',
-                    render: (r) => (
-                      <span className={`font-semibold ${CATEGORY_STYLES['Owner Direct'].amountClass}`}>
-                        {CATEGORY_STYLES['Owner Direct'].sign} {formatCurrency(r.amount)}
-                      </span>
-                    ),
-                  },
+                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Owner Direct" row={r} /> },
                 ]}
                 rows={project.owner_direct_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'owner_direct', id: r.id })}
-                getRowClassName={() => CATEGORY_STYLES['Owner Direct'].rowClass}
+                getRowClassName={rowAccent('Owner Direct')}
+                getCardClassName={cardTint}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
@@ -678,6 +703,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     )}
                     <p className={`text-lg font-bold ${CATEGORY_STYLES['Owner Direct'].amountClass}`}>
                       {CATEGORY_STYLES['Owner Direct'].sign} {formatCurrency(row.amount)}
+                      {dupIds.has(row.id) && <DuplicateBadge />}
                     </p>
                   </>
                 )}
@@ -714,20 +740,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     ),
                   },
                   { key: 'description', label: 'Description' },
-                  {
-                    key: 'amount',
-                    label: 'Amount',
-                    render: (r) => (
-                      <span className={`font-semibold ${CATEGORY_STYLES.Subcontractor.amountClass}`}>
-                        {CATEGORY_STYLES.Subcontractor.sign} {formatCurrency(r.amount)}
-                      </span>
-                    ),
-                  },
+                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Subcontractor" row={r} /> },
                 ]}
                 rows={project.subcontractor_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'sub', id: r.id })}
-                getRowClassName={() => CATEGORY_STYLES.Subcontractor.rowClass}
+                getRowClassName={rowAccent('Subcontractor')}
+                getCardClassName={cardTint}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
@@ -741,6 +760,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     )}
                     <p className={`text-lg font-bold ${CATEGORY_STYLES.Subcontractor.amountClass}`}>
                       {CATEGORY_STYLES.Subcontractor.sign} {formatCurrency(row.amount)}
+                      {dupIds.has(row.id) && <DuplicateBadge />}
                     </p>
                   </>
                 )}
@@ -767,20 +787,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  {
-                    key: 'amount',
-                    label: 'Amount',
-                    render: (r) => (
-                      <span className={`font-semibold ${CATEGORY_STYLES.Material.amountClass}`}>
-                        {CATEGORY_STYLES.Material.sign} {formatCurrency(r.amount)}
-                      </span>
-                    ),
-                  },
+                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Material" row={r} /> },
                 ]}
                 rows={project.material_expenses}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'expense', id: r.id })}
-                getRowClassName={() => CATEGORY_STYLES.Material.rowClass}
+                getRowClassName={rowAccent('Material')}
+                getCardClassName={cardTint}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
@@ -794,6 +807,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     )}
                     <p className={`text-lg font-bold ${CATEGORY_STYLES.Material.amountClass}`}>
                       {CATEGORY_STYLES.Material.sign} {formatCurrency(row.amount)}
+                      {dupIds.has(row.id) && <DuplicateBadge />}
                     </p>
                   </>
                 )}
@@ -826,20 +840,14 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   {
                     key: 'amount',
                     label: 'Amount',
-                    render: (r) => {
-                      const style = CATEGORY_STYLES[r.category as CategoryKey];
-                      return (
-                        <span className={`font-semibold ${style.amountClass}`}>
-                          {style.sign} {formatCurrency(r.amount)}
-                        </span>
-                      );
-                    },
+                    render: (r) => <AmountCell category={r.category as CategoryKey} row={r} />,
                   },
                 ]}
                 rows={allTransactions}
                 onEdit={editFromAll}
                 onDelete={deleteFromAll}
-                getRowClassName={(r) => CATEGORY_STYLES[r.category as CategoryKey].rowClass}
+                getRowClassName={(r) => rowAccent(r.category as CategoryKey)(r)}
+                getCardClassName={cardTint}
                 renderCard={(row) => {
                   const style = CATEGORY_STYLES[row.category as CategoryKey];
                   return (
@@ -855,6 +863,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                       )}
                       <p className={`text-lg font-bold ${style.amountClass}`}>
                         {formatCurrency(row.amount)}
+                        {dupIds.has(row.id) && <DuplicateBadge />}
                       </p>
                     </>
                   );
@@ -882,20 +891,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  {
-                    key: 'amount',
-                    label: 'Amount',
-                    render: (r) => (
-                      <span className={`font-semibold ${CATEGORY_STYLES.Misc.amountClass}`}>
-                        {CATEGORY_STYLES.Misc.sign} {formatCurrency(r.amount)}
-                      </span>
-                    ),
-                  },
+                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Misc" row={r} /> },
                 ]}
                 rows={project.miscellaneous_expenses}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'misc', id: r.id })}
-                getRowClassName={() => CATEGORY_STYLES.Misc.rowClass}
+                getRowClassName={rowAccent('Misc')}
+                getCardClassName={cardTint}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
@@ -909,6 +911,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     )}
                     <p className={`text-lg font-bold ${CATEGORY_STYLES.Misc.amountClass}`}>
                       {CATEGORY_STYLES.Misc.sign} {formatCurrency(row.amount)}
+                      {dupIds.has(row.id) && <DuplicateBadge />}
                     </p>
                   </>
                 )}
@@ -935,20 +938,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <DataTable
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
-                  {
-                    key: 'amount',
-                    label: 'Amount',
-                    render: (r) => (
-                      <span className={`font-semibold ${CATEGORY_STYLES['Commission Payout'].amountClass}`}>
-                        {CATEGORY_STYLES['Commission Payout'].sign} {formatCurrency(r.amount)}
-                      </span>
-                    ),
-                  },
+                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Commission Payout" row={r} /> },
                 ]}
                 rows={project.commission_payouts}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'commission_payout', id: r.id })}
-                getRowClassName={() => CATEGORY_STYLES['Commission Payout'].rowClass}
+                getRowClassName={rowAccent('Commission Payout')}
+                getCardClassName={cardTint}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
@@ -959,6 +955,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     </div>
                     <p className={`text-lg font-bold ${CATEGORY_STYLES['Commission Payout'].amountClass}`}>
                       {CATEGORY_STYLES['Commission Payout'].sign} {formatCurrency(row.amount)}
+                      {dupIds.has(row.id) && <DuplicateBadge />}
                     </p>
                   </>
                 )}
