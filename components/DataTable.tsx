@@ -21,6 +21,8 @@ interface DataTableProps<T extends DataTableRow = DataTableRow> {
   renderCard?: (row: T) => React.ReactNode;
   /** Used for date grouping in card view. Defaults to (row) => row.date */
   getCardDate?: (row: T) => string;
+  /** Optional per-row class names applied to each desktop table row (<tr>). */
+  getRowClassName?: (row: T) => string;
 }
 
 export function DataTable<T extends DataTableRow>({
@@ -30,6 +32,7 @@ export function DataTable<T extends DataTableRow>({
   onDelete,
   renderCard,
   getCardDate,
+  getRowClassName,
 }: DataTableProps<T>) {
   /* ── Group rows by date for card view ── */
   const groupedRows = useMemo(() => {
@@ -127,7 +130,7 @@ export function DataTable<T extends DataTableRow>({
                 </thead>
                 <tbody>
                   {rows.map((row) => (
-                    <tr key={row.id}>
+                    <tr key={row.id} className={getRowClassName?.(row)}>
                       {columns.map((c) => (
                         <td key={c.key} className="whitespace-nowrap">
                           {c.render ? c.render(row) : (row[c.key as keyof T] as React.ReactNode)}
