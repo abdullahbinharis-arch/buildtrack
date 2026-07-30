@@ -601,21 +601,30 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <DataTable
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
-                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <span className={`font-semibold ${CATEGORY_STYLES['Owner Payment'].amountClass}`}>
+                        {CATEGORY_STYLES['Owner Payment'].sign} {formatCurrency(r.amount)}
+                      </span>
+                    ),
+                  },
                 ]}
                 rows={project.owner_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'owner', id: r.id })}
+                getRowClassName={() => CATEGORY_STYLES['Owner Payment'].rowClass}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-white/60 backdrop-blur-sm">
+                      <span className={categoryBadgeClass('Owner Payment')}>
                         Owner Payment
                       </span>
                       <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
                     </div>
-                    <p className="text-lg font-bold text-emerald-600">
-                      + {formatCurrency(row.amount)}
+                    <p className={`text-lg font-bold ${CATEGORY_STYLES['Owner Payment'].amountClass}`}>
+                      {CATEGORY_STYLES['Owner Payment'].sign} {formatCurrency(row.amount)}
                     </p>
                   </>
                 )}
@@ -642,15 +651,24 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <span className={`font-semibold ${CATEGORY_STYLES['Owner Direct'].amountClass}`}>
+                        {CATEGORY_STYLES['Owner Direct'].sign} {formatCurrency(r.amount)}
+                      </span>
+                    ),
+                  },
                 ]}
                 rows={project.owner_direct_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'owner_direct', id: r.id })}
+                getRowClassName={() => CATEGORY_STYLES['Owner Direct'].rowClass}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-rose-100/80 px-2.5 py-0.5 text-xs font-semibold text-rose-700 ring-1 ring-white/60 backdrop-blur-sm">
+                      <span className={categoryBadgeClass('Owner Direct')}>
                         Owner Direct
                       </span>
                       <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
@@ -658,8 +676,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     {row.description && (
                       <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
                     )}
-                    <p className="text-lg font-bold text-rose-600">
-                      - {formatCurrency(row.amount)}
+                    <p className={`text-lg font-bold ${CATEGORY_STYLES['Owner Direct'].amountClass}`}>
+                      {CATEGORY_STYLES['Owner Direct'].sign} {formatCurrency(row.amount)}
                     </p>
                   </>
                 )}
@@ -686,17 +704,34 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <DataTable
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
-                  { key: 'type', label: 'Type' },
+                  {
+                    key: 'type',
+                    label: 'Type',
+                    render: (r) => (
+                      <span className={categoryBadgeClass('Subcontractor')}>
+                        {r.type}
+                      </span>
+                    ),
+                  },
                   { key: 'description', label: 'Description' },
-                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <span className={`font-semibold ${CATEGORY_STYLES.Subcontractor.amountClass}`}>
+                        {CATEGORY_STYLES.Subcontractor.sign} {formatCurrency(r.amount)}
+                      </span>
+                    ),
+                  },
                 ]}
                 rows={project.subcontractor_payments}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'sub', id: r.id })}
+                getRowClassName={() => CATEGORY_STYLES.Subcontractor.rowClass}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-amber-100/80 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-white/60 backdrop-blur-sm">
+                      <span className={categoryBadgeClass('Subcontractor')}>
                         {row.type}
                       </span>
                       <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
@@ -704,8 +739,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     {row.description && (
                       <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
                     )}
-                    <p className="text-lg font-bold text-rose-600">
-                      - {formatCurrency(row.amount)}
+                    <p className={`text-lg font-bold ${CATEGORY_STYLES.Subcontractor.amountClass}`}>
+                      {CATEGORY_STYLES.Subcontractor.sign} {formatCurrency(row.amount)}
                     </p>
                   </>
                 )}
@@ -732,15 +767,24 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <span className={`font-semibold ${CATEGORY_STYLES.Material.amountClass}`}>
+                        {CATEGORY_STYLES.Material.sign} {formatCurrency(r.amount)}
+                      </span>
+                    ),
+                  },
                 ]}
                 rows={project.material_expenses}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'expense', id: r.id })}
+                getRowClassName={() => CATEGORY_STYLES.Material.rowClass}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-blue-100/80 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-white/60 backdrop-blur-sm">
+                      <span className={categoryBadgeClass('Material')}>
                         Material
                       </span>
                       <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
@@ -748,8 +792,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     {row.description && (
                       <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
                     )}
-                    <p className="text-lg font-bold text-rose-600">
-                      - {formatCurrency(row.amount)}
+                    <p className={`text-lg font-bold ${CATEGORY_STYLES.Material.amountClass}`}>
+                      {CATEGORY_STYLES.Material.sign} {formatCurrency(row.amount)}
                     </p>
                   </>
                 )}
@@ -838,15 +882,24 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <span className={`font-semibold ${CATEGORY_STYLES.Misc.amountClass}`}>
+                        {CATEGORY_STYLES.Misc.sign} {formatCurrency(r.amount)}
+                      </span>
+                    ),
+                  },
                 ]}
                 rows={project.miscellaneous_expenses}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'misc', id: r.id })}
+                getRowClassName={() => CATEGORY_STYLES.Misc.rowClass}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-slate-200/80 px-2.5 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-white/60 backdrop-blur-sm">
+                      <span className={categoryBadgeClass('Misc')}>
                         Misc
                       </span>
                       <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
@@ -854,8 +907,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     {row.description && (
                       <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
                     )}
-                    <p className="text-lg font-bold text-rose-600">
-                      - {formatCurrency(row.amount)}
+                    <p className={`text-lg font-bold ${CATEGORY_STYLES.Misc.amountClass}`}>
+                      {CATEGORY_STYLES.Misc.sign} {formatCurrency(row.amount)}
                     </p>
                   </>
                 )}
@@ -882,21 +935,30 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <DataTable
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
-                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <span className={`font-semibold ${CATEGORY_STYLES['Commission Payout'].amountClass}`}>
+                        {CATEGORY_STYLES['Commission Payout'].sign} {formatCurrency(r.amount)}
+                      </span>
+                    ),
+                  },
                 ]}
                 rows={project.commission_payouts}
                 onEdit={(r) => setEditing(r)}
                 onDelete={(r) => setDeleting({ type: 'commission_payout', id: r.id })}
+                getRowClassName={() => CATEGORY_STYLES['Commission Payout'].rowClass}
                 renderCard={(row) => (
                   <>
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-purple-100/80 px-2.5 py-0.5 text-xs font-semibold text-purple-700 ring-1 ring-white/60 backdrop-blur-sm">
+                      <span className={categoryBadgeClass('Commission Payout')}>
                         Commission
                       </span>
                       <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
                     </div>
-                    <p className="text-lg font-bold text-rose-600">
-                      - {formatCurrency(row.amount)}
+                    <p className={`text-lg font-bold ${CATEGORY_STYLES['Commission Payout'].amountClass}`}>
+                      {CATEGORY_STYLES['Commission Payout'].sign} {formatCurrency(row.amount)}
                     </p>
                   </>
                 )}
