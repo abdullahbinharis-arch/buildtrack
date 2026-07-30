@@ -248,90 +248,124 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     router.push('/');
   };
 
-  const submitOwner = async (data: PaymentFormData) => {
-    const base = { amount: data.amount, date: data.date };
-    const url = editing
-      ? `/api/projects/${project.id}/owner-payments/${editing.id}`
-      : `/api/projects/${project.id}/owner-payments`;
-    await apiFetch(url, {
-      method: editing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(base),
+  const [pendingDuplicate, setPendingDuplicate] = useState<{
+    message: string;
+    proceed: () => void;
+  } | null>(null);
+
+  /* Entry-time duplicate check: warns before saving a same-amount entry dated within 3 days of an existing one (same category). */
+  const checkDuplicateAndSubmit = (
+    rows: { id: string; date: string; amount: number }[],
+    data: { date: string; amount: number },
+    doSubmit: () => Promise<void>
+  ) => {
+    const match = findDuplicateMatch(rows, data, editing?.id);
+    if (!match) {
+      void doSubmit();
+      return;
+    }
+    setPendingDuplicate({
+      message: `${formatCurrency(data.amount)} was already recorded on ${formatDate(match.date)}. Add anyway?`,
+      proceed: () => void doSubmit(),
     });
-    setEditing(null);
-    setFormKey((k) => k + 1);
-    fetchProject();
+  };
+
+  const submitOwner = async (data: PaymentFormData) => {
+    checkDuplicateAndSubmit(project.owner_payments, data, async () => {
+      const base = { amount: data.amount, date: data.date };
+      const url = editing
+        ? `/api/projects/${project.id}/owner-payments/${editing.id}`
+        : `/api/projects/${project.id}/owner-payments`;
+      await apiFetch(url, {
+        method: editing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(base),
+      });
+      setEditing(null);
+      setFormKey((k) => k + 1);
+      fetchProject();
+    });
   };
 
   const submitOwnerDirect = async (data: ExpenseFormData) => {
-    const url = editing
-      ? `/api/projects/${project.id}/owner-direct-payments/${editing.id}`
-      : `/api/projects/${project.id}/owner-direct-payments`;
-    await apiFetch(url, {
-      method: editing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    checkDuplicateAndSubmit(project.owner_direct_payments, data, async () => {
+      const url = editing
+        ? `/api/projects/${project.id}/owner-direct-payments/${editing.id}`
+        : `/api/projects/${project.id}/owner-direct-payments`;
+      await apiFetch(url, {
+        method: editing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      setEditing(null);
+      setFormKey((k) => k + 1);
+      fetchProject();
     });
-    setEditing(null);
-    setFormKey((k) => k + 1);
-    fetchProject();
   };
 
   const submitSub = async (data: PaymentFormData) => {
     if (!('type' in data)) return;
-    const url = editing
-      ? `/api/projects/${project.id}/subcontractor-payments/${editing.id}`
-      : `/api/projects/${project.id}/subcontractor-payments`;
-    await apiFetch(url, {
-      method: editing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    checkDuplicateAndSubmit(project.subcontractor_payments, data, async () => {
+      const url = editing
+        ? `/api/projects/${project.id}/subcontractor-payments/${editing.id}`
+        : `/api/projects/${project.id}/subcontractor-payments`;
+      await apiFetch(url, {
+        method: editing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      setEditing(null);
+      setFormKey((k) => k + 1);
+      fetchProject();
     });
-    setEditing(null);
-    setFormKey((k) => k + 1);
-    fetchProject();
   };
 
   const submitExpense = async (data: ExpenseFormData) => {
-    const url = editing
-      ? `/api/projects/${project.id}/material-expenses/${editing.id}`
-      : `/api/projects/${project.id}/material-expenses`;
-    await apiFetch(url, {
-      method: editing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    checkDuplicateAndSubmit(project.material_expenses, data, async () => {
+      const url = editing
+        ? `/api/projects/${project.id}/material-expenses/${editing.id}`
+        : `/api/projects/${project.id}/material-expenses`;
+      await apiFetch(url, {
+        method: editing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      setEditing(null);
+      setFormKey((k) => k + 1);
+      fetchProject();
     });
-    setEditing(null);
-    setFormKey((k) => k + 1);
-    fetchProject();
   };
 
   const submitMisc = async (data: ExpenseFormData) => {
-    const url = editing
-      ? `/api/projects/${project.id}/misc-expenses/${editing.id}`
-      : `/api/projects/${project.id}/misc-expenses`;
-    await apiFetch(url, {
-      method: editing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    checkDuplicateAndSubmit(project.miscellaneous_expenses, data, async () => {
+      const url = editing
+        ? `/api/projects/${project.id}/misc-expenses/${editing.id}`
+        : `/api/projects/${project.id}/misc-expenses`;
+      await apiFetch(url, {
+        method: editing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      setEditing(null);
+      setFormKey((k) => k + 1);
+      fetchProject();
     });
-    setEditing(null);
-    setFormKey((k) => k + 1);
-    fetchProject();
   };
 
   const submitCommissionPayout = async (data: ExpenseFormData) => {
-    const url = editing
-      ? `/api/projects/${project.id}/commission-payouts/${editing.id}`
-      : `/api/projects/${project.id}/commission-payouts`;
-    await apiFetch(url, {
-      method: editing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    checkDuplicateAndSubmit(project.commission_payouts, data, async () => {
+      const url = editing
+        ? `/api/projects/${project.id}/commission-payouts/${editing.id}`
+        : `/api/projects/${project.id}/commission-payouts`;
+      await apiFetch(url, {
+        method: editing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      setEditing(null);
+      setFormKey((k) => k + 1);
+      fetchProject();
     });
-    setEditing(null);
-    setFormKey((k) => k + 1);
-    fetchProject();
   };
 
   const deleteRow = async (endpoint: string) => {
@@ -967,6 +1001,17 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       </Card>
 
       {/* Delete confirmations — rendered outside backdrop-filter elements to avoid Chrome fixed-positioning bug */}
+      {pendingDuplicate && (
+        <DuplicateConfirm
+          title={pendingDuplicate.message}
+          onConfirm={() => {
+            const proceed = pendingDuplicate.proceed;
+            setPendingDuplicate(null);
+            proceed();
+          }}
+          onCancel={() => setPendingDuplicate(null)}
+        />
+      )}
       {deleting?.type === 'project' && (
         <DeleteConfirm
           title="Are you sure you want to delete this project and all its records?"
