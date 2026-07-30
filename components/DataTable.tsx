@@ -23,6 +23,8 @@ interface DataTableProps<T extends DataTableRow = DataTableRow> {
   getCardDate?: (row: T) => string;
   /** Optional per-row class names applied to each desktop table row (<tr>). */
   getRowClassName?: (row: T) => string;
+  /** Optional per-row class names applied to each mobile card. */
+  getCardClassName?: (row: T) => string;
 }
 
 export function DataTable<T extends DataTableRow>({
@@ -33,6 +35,7 @@ export function DataTable<T extends DataTableRow>({
   renderCard,
   getCardDate,
   getRowClassName,
+  getCardClassName,
 }: DataTableProps<T>) {
   /* ── Group rows by date for card view ── */
   const groupedRows = useMemo(() => {
@@ -72,7 +75,10 @@ export function DataTable<T extends DataTableRow>({
                 {group.rows.map((row) => (
                   <div
                     key={row.id}
-                    className="flex items-start gap-2 rounded-2xl bg-white/60 p-3 ring-1 ring-white/70 backdrop-blur-md transition-all hover:bg-white/80 min-h-[64px]"
+                    className={cn(
+                      'flex items-start gap-2 rounded-2xl bg-white/60 p-3 ring-1 ring-white/70 backdrop-blur-md transition-all hover:bg-white/80 min-h-[64px]',
+                      getCardClassName?.(row)
+                    )}
                   >
                     {/* Card content area */}
                     <div className="min-w-0 flex-1">
