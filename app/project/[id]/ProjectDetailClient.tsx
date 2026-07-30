@@ -11,6 +11,7 @@ import { DeleteConfirm } from '@/components/DeleteConfirm';
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { CATEGORY_STYLES, categoryBadgeClass, type CategoryKey } from '@/lib/category-styles';
 import { apiFetch } from '@/lib/fetch-client';
 import { generateProjectReport } from '@/lib/generate-report';
 import {
@@ -768,32 +769,39 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <DataTable
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
-                  { key: 'category', label: 'Category' },
+                  {
+                    key: 'category',
+                    label: 'Category',
+                    render: (r) => (
+                      <span className={categoryBadgeClass(r.category as CategoryKey)}>
+                        {r.category}
+                      </span>
+                    ),
+                  },
                   { key: 'description', label: 'Description' },
-                  { key: 'amount', label: 'Amount', render: (r) => formatCurrency(r.amount) },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => {
+                      const style = CATEGORY_STYLES[r.category as CategoryKey];
+                      return (
+                        <span className={`font-semibold ${style.amountClass}`}>
+                          {style.sign} {formatCurrency(r.amount)}
+                        </span>
+                      );
+                    },
+                  },
                 ]}
                 rows={allTransactions}
                 onEdit={editFromAll}
                 onDelete={deleteFromAll}
+                getRowClassName={(r) => CATEGORY_STYLES[r.category as CategoryKey].rowClass}
                 renderCard={(row) => {
-                  const isIncome = row.category === 'Owner Payment';
-                  const categoryColors: Record<string, string> = {
-                    'Owner Payment': 'bg-emerald-100/80 text-emerald-700',
-                    'Owner Direct': 'bg-rose-100/80 text-rose-700',
-                    'Subcontractor': 'bg-amber-100/80 text-amber-700',
-                    'Material': 'bg-blue-100/80 text-blue-700',
-                    'Misc': 'bg-slate-200/80 text-slate-700',
-                    'Commission Payout': 'bg-purple-100/80 text-purple-700',
-                  };
+                  const style = CATEGORY_STYLES[row.category as CategoryKey];
                   return (
                     <>
                       <div className="mb-1 flex items-center justify-between gap-2">
-                        <span
-                          className={
-                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-white/60 backdrop-blur-sm ' +
-                            (categoryColors[row.category] || 'bg-slate-100/80 text-slate-700')
-                          }
-                        >
+                        <span className={categoryBadgeClass(row.category as CategoryKey)}>
                           {row.category}
                         </span>
                         <span className="text-xs text-slate-500">{formatDate(row.date)}</span>
@@ -801,7 +809,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                       {row.description && (
                         <p className="mb-1 truncate text-sm text-slate-600">{row.description}</p>
                       )}
-                      <p className={`text-lg font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <p className={`text-lg font-bold ${style.amountClass}`}>
                         {formatCurrency(row.amount)}
                       </p>
                     </>
