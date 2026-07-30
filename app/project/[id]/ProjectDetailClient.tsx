@@ -570,7 +570,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setEditingProject(true)}
               className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-white/80 bg-white/50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:text-sm"
