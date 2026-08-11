@@ -83,103 +83,104 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   doc.setLineWidth(0.5);
   doc.line(margin, 46, pageWidth - margin, 46);
 
-  // ── Summary boxes (2x3 grid) ──
+  // ── Cost Breakdown structured panel ──
   let sy = 53;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...darkText);
+  const costY = sectionTitle('Cost Breakdown', sy) + 4;
 
-  const summaryItems = [
-    ...(data.estimated_value > 0 ? [{ label: 'Contract Value', value: pdfCurrency(data.estimated_value), positive: true }] : []),
-    { label: 'Amount Received', value: pdfCurrency(calcs.received), positive: true },
-    { label: 'Construction Cost', value: pdfCurrency(calcs.constructionCost), positive: false },
-    { label: 'Commission Paid', value: pdfCurrency(calcs.commissionPaid), positive: false },
-    { label: 'Balance in Hand', value: pdfCurrency(Math.abs(calcs.balanceInHand)), positive: calcs.balanceInHand >= 0 },
-  ];
+  const red: [number, number, number] = [220, 38, 38];
+  const purple: [number, number, number] = [147, 51, 234];
+  const green: [number, number, number] = [15, 118, 110];
 
-  const boxW = (contentWidth - 6) / 2;
-  const boxH = 22;
-
-  summaryItems.forEach((item, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const bx = margin + col * (boxW + 6);
-    const by = sy + row * (boxH + 4);
-
-    doc.setFillColor(248, 250, 252);
-    doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(bx, by, boxW, boxH, 2, 2, 'FD');
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...mutedText);
-    doc.text(item.label, bx + 4, by + 7);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(item.positive ? 15 : 220, item.positive ? 118 : 38, item.positive ? 110 : 38);
-    doc.text(item.value, bx + 4, by + 18);
-  });
-
-  // ── Cost breakdown table ──
-  sy = sy + 2 * (boxH + 4) + 12;
-  const costY = sectionTitle('Cost Breakdown', sy) + 2;
-
-  autoTable(doc, {
-    startY: costY,
-    margin: { left: margin, right: margin },
-    tableWidth: contentWidth,
-    body: [
-      ['Subcontractor Payments', pdfCurrency(calcs.subCost)],
-      ['Material Expenses', pdfCurrency(calcs.matCost)],
-      ['Miscellaneous Expenses', pdfCurrency(calcs.miscCost)],
-      ['Total Construction Cost', pdfCurrency(calcs.constructionCost)],
-    ],
-    theme: 'plain',
-    styles: { fontSize: 9, textColor: [30, 41, 59] as [number, number, number], cellPadding: { top: 2, bottom: 2, left: 0, right: 0 } },
-    columnStyles: {
-      0: { cellWidth: contentWidth * 0.6 },
-      1: { cellWidth: contentWidth * 0.4, halign: 'right' },
-    },
-    didParseCell: (data) => {
-      if (data.section === 'body' && data.row.index === 3) {
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.textColor = [220, 38, 38] as [number, number, number];
-      }
-    },
-  });
-
-  // ── Owner Direct + Total Project Cost (informational) ──
-  if (calcs.directCost > 0) {
-    const infoY = doc.lastAutoTable.finalY + 8;
-    sectionTitle('Additional Costs', infoY);
-
-    autoTable(doc, {
-      startY: infoY + 8,
-      margin: { left: margin, right: margin },
-      tableWidth: contentWidth,
-      body: [
-        ['Owner Direct Payments', pdfCurrency(calcs.directCost)],
-        ['Total Project Cost (with owner direct)', pdfCurrency(calcs.totalProjectCost)],
-        ['Commission Paid', pdfCurrency(calcs.commissionPaid)],
-        ['Balance in Hand (after commission)', pdfCurrency(Math.abs(calcs.balanceInHand))],
-      ],
-      theme: 'plain',
-      styles: { fontSize: 9, textColor: [30, 41, 59] as [number, number, number], cellPadding: { top: 2, bottom: 2, left: 0, right: 0 } },
-      columnStyles: {
-        0: { cellWidth: contentWidth * 0.6 },
-        1: { cellWidth: contentWidth * 0.4, halign: 'right' },
-      },
-      didDrawCell: (data) => {
-        if (data.section === 'body' && data.row.index === 3) {
-          data.cell.styles.fontStyle = 'bold';
-        }
-      },
-    });
+  /** Draw a single breakdown row: label on left, amount on right. */
+  function breakdownRow(label: string, amount: number, opts?: { bold?: boolean; color?: [number, number, number] }) {
+    const y = (doc.lastAutoTable as any).finalY + 2;
+    doc.setFont('helvetica', opts?.bold ? 'bold' : 'normal');
+    doc.setFontSize(9);
+    if (opts?.color) {
+      (doc.setTextColor as any)(...opts.color);
+    } else {
+      doc.setTextColor(...darkText);
+    }
+    doc.text(label, margin, y);
+    doc.text(pdfCurrency(amount), pageWidth - margin, y, { align: 'right' });
+    (doc as any).lastAutoTable = { finalY: y + 4 };
   }
 
+  /** Draw a highlighted row with background fill. */
+  function highlightRow(label: string, amount: number, opts?: { color?: [number, number, number]; bg?: [number, number, number] }) {
+    const y = (doc.lastAutoTable as any).finalY + 1;
+    const rowH = 7;
+
+    if (opts?.bg) {
+      (doc.setFillColor as any)(...opts.bg);
+    } else {
+      doc.setFillColor(248, 250, 252);
+    }
+    doc.rect(margin - 3, y - 2, contentWidth + 6, rowH, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    if (opts?.color) {
+      (doc.setTextColor as any)(...opts.color);
+    } else {
+      doc.setTextColor(...darkText);
+    }
+    doc.text(label, margin, y + 1.5);
+    doc.text(pdfCurrency(amount), pageWidth - margin, y + 1.5, { align: 'right' });
+
+    (doc as any).lastAutoTable = { finalY: y + rowH };
+  }
+
+  // Initial Y tracker — used by breakdownRow / highlightRow
+  // @ts-ignore – mutable tracker for Y position
+  (doc as any).lastAutoTable = { finalY: costY - 2 };
+
+  // ── Contractor costs ──
+  breakdownRow('Subcontractor Payments', calcs.subCost);
+  breakdownRow('Material Expenses', calcs.matCost);
+  breakdownRow('Miscellaneous Expenses', calcs.miscCost);
+
+  // Separator
+  const sepY = (doc.lastAutoTable as any).finalY + 2;
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.4);
+  doc.line(margin, sepY, pageWidth - margin, sepY);
+  (doc as any).lastAutoTable = { finalY: sepY };
+
+  // Construction Cost by Contractor — bold red
+  highlightRow('Construction Cost by Contractor', calcs.constructionCost, { color: red, bg: [254, 242, 242] });
+
+  // Owner Direct
+  breakdownRow('', 0); // spacer
+  const odY = (doc.lastAutoTable as any).finalY + 1;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...darkText);
+  doc.text('Owner Direct Payments', margin, odY);
+  doc.text(pdfCurrency(calcs.directCost), pageWidth - margin, odY, { align: 'right' });
+  (doc as any).lastAutoTable = { finalY: odY + 5 };
+
+  // Total Project Cost — bold dark
+  highlightRow('Total Project Cost (including owner direct)', calcs.totalProjectCost, { bg: [241, 245, 249] });
+
+  // ── Cash Balance section ──
+  const cbY = (doc.lastAutoTable as any).finalY + 8;
+  sectionTitle('Cash Balance', cbY);
+
+  (doc as any).lastAutoTable = { finalY: cbY + 8 };
+
+  breakdownRow('Commission Paid', calcs.commissionPaid, { bold: true, color: purple });
+
+  // Balance in Hand — highlighted green/red
+  const balY = (doc.lastAutoTable as any).finalY + 3;
+  highlightRow(
+    'Balance in Hand (after commission)',
+    Math.abs(calcs.balanceInHand),
+    { color: calcs.balanceInHand >= 0 ? green : red, bg: [236, 253, 245] },
+  );
+
   // ── Transaction tables ──
-  let tableY = doc.lastAutoTable.finalY + 10;
+  let tableY = (doc.lastAutoTable as any).finalY + 10;
 
   function addTable(
     title: string,
