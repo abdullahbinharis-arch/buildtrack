@@ -18,6 +18,7 @@ interface ProjectSummary {
   created_at: string;
   total_received: number;
   total_expenses: number;
+  total_project_cost?: number;
   profit_loss: number;
   commission_payable: number;
 }
@@ -74,11 +75,12 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
       (acc, p) => {
         acc.revenue += p.total_received;
         acc.expenses += p.total_expenses;
+        acc.projectCost += p.total_project_cost ?? p.total_expenses;
         acc.balance += p.profit_loss;
         acc.commission += p.commission_payable;
         return acc;
       },
-      { revenue: 0, expenses: 0, balance: 0, commission: 0 }
+      { revenue: 0, expenses: 0, projectCost: 0, balance: 0, commission: 0 }
     );
   }, [projects]);
 
@@ -150,24 +152,25 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
         </div>
 
         <div className="flex items-center gap-3 rounded-2xl bg-white/50 p-4 ring-1 ring-white/70 backdrop-blur-md transition-colors hover:bg-white/70">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100/80 text-emerald-700 ring-1 ring-white/70 backdrop-blur-sm">
-            <PiggyBank className="h-5 w-5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100/80 text-purple-700 ring-1 ring-white/70 backdrop-blur-sm">
+            <Percent className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500">Balance</p>
-            <p className={`text-lg font-bold ${totals.balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {formatCurrency(Math.abs(totals.balance))}
-            </p>
+            <p className="text-xs text-slate-500">Commission Paid</p>
+            <p className="text-lg font-bold text-purple-600">{formatCurrency(totals.commission)}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 rounded-2xl bg-white/50 p-4 ring-1 ring-white/70 backdrop-blur-md transition-colors hover:bg-white/70">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100/80 text-brand-700 ring-1 ring-white/70 backdrop-blur-sm">
-            <Percent className="h-5 w-5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100/80 text-emerald-700 ring-1 ring-white/70 backdrop-blur-sm">
+            <PiggyBank className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500">Commission</p>
-            <p className="text-lg font-bold text-brand-600">{formatCurrency(totals.commission)}</p>
+            <p className="text-xs text-slate-500">Balance in Hand</p>
+            <p className={`text-lg font-bold ${totals.balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {formatCurrency(Math.abs(totals.balance))}
+              {totals.balance < 0 && ' deficit'}
+            </p>
           </div>
         </div>
       </div>

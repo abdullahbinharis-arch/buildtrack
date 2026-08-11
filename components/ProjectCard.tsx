@@ -12,12 +12,16 @@ interface ProjectCardProps {
     commission_rate: number;
     total_received: number;
     total_expenses: number;
+    total_project_cost?: number;
     profit_loss: number;
     commission_payable: number;
   };
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const balance = project.profit_loss;
+  const commission = project.commission_payable;
+
   return (
     <Link href={`/project/${project.id}`} className="block touch-manipulation">
       <Card hover className="group relative h-full overflow-hidden p-4 sm:p-5">
@@ -42,14 +46,22 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <p className="mt-0.5 font-semibold text-emerald-600">{formatCurrency(project.total_received)}</p>
             </div>
             <div className="rounded-xl bg-white/50 p-2.5 sm:p-3 ring-1 ring-white/70 backdrop-blur-sm">
-              <p className="text-xs text-slate-500">Cost</p>
+              <p className="text-xs text-slate-500">Construction Cost</p>
               <p className="mt-0.5 font-semibold text-rose-600">{formatCurrency(project.total_expenses)}</p>
             </div>
           </div>
 
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-purple-50/60 p-2.5 sm:p-3 ring-1 ring-purple-100/70 backdrop-blur-sm">
+            <p className="text-xs text-slate-500">Commission Paid</p>
+            <p className="text-sm font-semibold text-purple-700">{formatCurrency(commission)}</p>
+          </div>
+
           <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50/60 p-2.5 sm:p-3 ring-1 ring-emerald-100/70 backdrop-blur-sm">
-            <p className="text-xs text-slate-500">Commission ({project.commission_rate}%)</p>
-            <p className="text-sm font-semibold text-emerald-700">{formatCurrency(project.commission_payable)}</p>
+            <p className="text-xs text-slate-500">Balance</p>
+            <p className={`text-sm font-semibold ${balance >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {formatCurrency(Math.abs(balance))}
+              {balance < 0 && ' deficit'}
+            </p>
           </div>
 
           <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-brand-600 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">

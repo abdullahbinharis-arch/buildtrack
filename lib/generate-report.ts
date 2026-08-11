@@ -29,9 +29,13 @@ function getCalculations(data: ProjectReportData) {
   const subCost = data.subcontractor_payments.reduce((s, p) => s + p.amount, 0);
   const matCost = data.material_expenses.reduce((s, p) => s + p.amount, 0);
   const miscCost = data.miscellaneous_expenses.reduce((s, p) => s + p.amount, 0);
-  const totalCost = subCost + matCost + miscCost + directCost;
-  const profit = received - (subCost + matCost + miscCost);
-  return { received, directCost, subCost, matCost, miscCost, totalCost, profit };
+  const commissionPaid = data.commission_payouts.reduce((s, p) => s + p.amount, 0);
+
+  const constructionCost = subCost + matCost + miscCost;
+  const totalProjectCost = constructionCost + directCost;
+  const balanceInHand = received - constructionCost - commissionPaid;
+
+  return { received, directCost, subCost, matCost, miscCost, constructionCost, totalProjectCost, commissionPaid, balanceInHand };
 }
 
 export function generateProjectReport(data: ProjectReportData): jsPDF {
@@ -79,7 +83,7 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   doc.setLineWidth(0.5);
   doc.line(margin, 46, pageWidth - margin, 46);
 
-  // ── Summary boxes (4 boxes in 2x2 grid, no commission) ──
+  // ── Summary boxes (2x3 grid) ──
   let sy = 53;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
@@ -88,8 +92,9 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   const summaryItems = [
     ...(data.estimated_value > 0 ? [{ label: 'Contract Value', value: pdfCurrency(data.estimated_value), positive: true }] : []),
     { label: 'Amount Received', value: pdfCurrency(calcs.received), positive: true },
-    { label: 'Total Cost', value: pdfCurrency(calcs.totalCost), positive: false },
-    { label: 'Balance in Hand', value: pdfCurrency(Math.abs(calcs.profit)), positive: calcs.profit >= 0 },
+    { label: 'Construction Cost', value: pdfCurrency(calcs.constructionCost), positive: false },
+    { label: 'Commission Paid', value: pdfCurrency(calcs.commissionPaid), positive: false },
+    { label: 'Balance in Hand', value: pdfCurrency(Math.abs(calcs.balanceInHand)), positive: calcs.balanceInHand >= 0 },
   ];
 
   const boxW = (contentWidth - 6) / 2;
@@ -116,7 +121,7 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
     doc.text(item.value, bx + 4, by + 18);
   });
 
-  // ── Cost breakdown table (positioned after the 2 rows of boxes) ──
+  // ── Cost breakdown table ──
   sy = sy + 2 * (boxH + 4) + 12;
   const costY = sectionTitle('Cost Breakdown', sy) + 2;
 
@@ -128,8 +133,7 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
       ['Subcontractor Payments', pdfCurrency(calcs.subCost)],
       ['Material Expenses', pdfCurrency(calcs.matCost)],
       ['Miscellaneous Expenses', pdfCurrency(calcs.miscCost)],
-      ['Owner Direct Payments', pdfCurrency(calcs.directCost)],
-      ['Total Cost', pdfCurrency(calcs.totalCost)],
+      ['Total Construction Cost', pdfCurrency(calcs.constructionCost)],
     ],
     theme: 'plain',
     styles: { fontSize: 9, textColor: [30, 41, 59] as [number, number, number], cellPadding: { top: 2, bottom: 2, left: 0, right: 0 } },
@@ -138,12 +142,41 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
       1: { cellWidth: contentWidth * 0.4, halign: 'right' },
     },
     didParseCell: (data) => {
-      if (data.section === 'body' && data.row.index === 4) {
+      if (data.section === 'body' && data.row.index === 3) {
         data.cell.styles.fontStyle = 'bold';
         data.cell.styles.textColor = [220, 38, 38] as [number, number, number];
       }
     },
   });
+
+  // ── Owner Direct + Total Project Cost (informational) ──
+  if (calcs.directCost > 0) {
+    const infoY = doc.lastAutoTable.finalY + 8;
+    sectionTitle('Additional Costs', infoY);
+
+    autoTable(doc, {
+      startY: infoY + 8,
+      margin: { left: margin, right: margin },
+      tableWidth: contentWidth,
+      body: [
+        ['Owner Direct Payments', pdfCurrency(calcs.directCost)],
+        ['Total Project Cost (with owner direct)', pdfCurrency(calcs.totalProjectCost)],
+        ['Commission Paid', pdfCurrency(calcs.commissionPaid)],
+        ['Balance in Hand (after commission)', pdfCurrency(Math.abs(calcs.balanceInHand))],
+      ],
+      theme: 'plain',
+      styles: { fontSize: 9, textColor: [30, 41, 59] as [number, number, number], cellPadding: { top: 2, bottom: 2, left: 0, right: 0 } },
+      columnStyles: {
+        0: { cellWidth: contentWidth * 0.6 },
+        1: { cellWidth: contentWidth * 0.4, halign: 'right' },
+      },
+      didDrawCell: (data) => {
+        if (data.section === 'body' && data.row.index === 3) {
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+    });
+  }
 
   // ── Transaction tables ──
   let tableY = doc.lastAutoTable.finalY + 10;

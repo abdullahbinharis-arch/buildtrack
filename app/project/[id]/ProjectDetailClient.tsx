@@ -134,11 +134,14 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const subCost = project.subcontractor_payments.reduce((s, p) => s + p.amount, 0);
   const matCost = project.material_expenses.reduce((s, p) => s + p.amount, 0);
   const miscCost = project.miscellaneous_expenses.reduce((s, p) => s + p.amount, 0);
-  const totalCost = subCost + matCost + miscCost + directCost;
-  const profit = received - (subCost + matCost + miscCost);
-  const commissionReceivable = (totalCost * project.commission_rate) / 100;
   const commissionPaid = project.commission_payouts.reduce((s, p) => s + p.amount, 0);
-  const commissionPayable = commissionReceivable - commissionPaid;
+
+  // Construction cost = contractor costs only (sub + material + misc)
+  const constructionCost = subCost + matCost + miscCost;
+  // Total project cost = construction + owner-direct payments (informational)
+  const totalProjectCost = constructionCost + directCost;
+  // Balance = received minus construction costs minus commission paid
+  const balanceInHand = received - constructionCost - commissionPaid;
 
   const lastUpdated = useMemo(() => {
     const allDates = [
@@ -620,10 +623,20 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-5">
           <SummaryCard label="Contract" value={formatCurrency(project.estimated_value)} icon={Receipt} />
           <SummaryCard label="Received" value={formatCurrency(received)} tone="success" icon={Wallet} />
-          <SummaryCard label="Total Cost" value={formatCurrency(totalCost)} tone="danger" icon={Users} />
-          <SummaryCard label="Balance" value={formatCurrency(Math.abs(profit))} tone={profit >= 0 ? 'success' : 'danger'} valueTone={profit >= 0 ? 'success' : 'danger'} icon={Package} />
-          <SummaryCard label={`Commission (${project.commission_rate}%)`} value={formatCurrency(Math.abs(commissionPayable))} tone={commissionPayable >= 0 ? 'success' : 'danger'} valueTone={commissionPayable >= 0 ? 'success' : 'danger'} icon={Percent} />
+          <SummaryCard label="Construction Cost" value={formatCurrency(constructionCost)} tone="danger" icon={Users} />
+          <SummaryCard label="Commission Paid" value={formatCurrency(commissionPaid)} tone={commissionPaid > 0 ? 'info' : 'neutral'} icon={Percent} />
+          <SummaryCard label="Balance" value={formatCurrency(Math.abs(balanceInHand))} tone={balanceInHand >= 0 ? 'success' : 'danger'} valueTone={balanceInHand >= 0 ? 'success' : 'danger'} icon={Package} />
         </div>
+
+        {directCost > 0 && (
+          <div className="mt-3 rounded-xl bg-slate-50/80 px-4 py-2.5 text-xs text-slate-500 ring-1 ring-white/60 backdrop-blur-sm">
+            <span className="font-semibold text-slate-700">Total Project Cost:</span> {formatCurrency(totalProjectCost)}
+            <span className="mx-1.5 text-slate-300">|</span>
+            Construction {formatCurrency(constructionCost)} + Owner Direct {formatCurrency(directCost)}
+            <span className="mx-1.5 text-slate-300">|</span>
+            Balance = Received − Construction − Commission
+          </div>
+        )}
 
         {editingProject && (
           <div className="relative mt-5">

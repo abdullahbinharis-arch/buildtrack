@@ -20,9 +20,15 @@ export async function GET() {
     const subCost = p.subcontractor_payments.reduce((s, x) => s + x.amount, 0);
     const matCost = p.material_expenses.reduce((s, x) => s + x.amount, 0);
     const miscCost = p.miscellaneous_expenses.reduce((s, x) => s + x.amount, 0);
-    const totalCost = subCost + matCost + miscCost + directCost;
-    const commissionReceivable = (totalCost * p.commission_rate) / 100;
     const commissionPaid = p.commission_payouts.reduce((s, x) => s + x.amount, 0);
+
+    // Construction cost = contractor costs only (no owner direct, no commission)
+    const constructionCost = subCost + matCost + miscCost;
+    // Total project cost = construction + owner-direct payments (informational)
+    const totalProjectCost = constructionCost + directCost;
+    // Balance = received minus construction costs minus commission paid
+    const balanceInHand = received - constructionCost - commissionPaid;
+
     return {
       id: p.id,
       name: p.name,
@@ -30,9 +36,10 @@ export async function GET() {
       commission_rate: p.commission_rate,
       created_at: p.created_at,
       total_received: received,
-      total_expenses: totalCost,
-      profit_loss: received - (subCost + matCost + miscCost),
-      commission_payable: commissionReceivable - commissionPaid,
+      total_expenses: constructionCost,
+      total_project_cost: totalProjectCost,
+      profit_loss: balanceInHand,
+      commission_payable: commissionPaid,
     };
   });
 
