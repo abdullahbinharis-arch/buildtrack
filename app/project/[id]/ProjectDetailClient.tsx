@@ -628,15 +628,68 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
           <SummaryCard label="Balance" value={formatCurrency(Math.abs(balanceInHand))} tone={balanceInHand >= 0 ? 'success' : 'danger'} valueTone={balanceInHand >= 0 ? 'success' : 'danger'} icon={Package} />
         </div>
 
-        {directCost > 0 && (
-          <div className="mt-3 rounded-xl bg-slate-50/80 px-4 py-2.5 text-xs text-slate-500 ring-1 ring-white/60 backdrop-blur-sm">
-            <span className="font-semibold text-slate-700">Total Project Cost:</span> {formatCurrency(totalProjectCost)}
-            <span className="mx-1.5 text-slate-300">|</span>
-            Construction {formatCurrency(constructionCost)} + Owner Direct {formatCurrency(directCost)}
-            <span className="mx-1.5 text-slate-300">|</span>
-            Balance = Received − Construction − Commission
+        {/* Cost Breakdown structured panel */}
+        <div className="mt-5 overflow-hidden rounded-2xl border border-white/70 bg-white/40 shadow-sm ring-1 ring-white/50 backdrop-blur-md">
+          <div className="bg-white/60 px-5 py-3">
+            <h3 className="text-sm font-bold text-slate-800">Cost Breakdown</h3>
           </div>
-        )}
+
+          <div className="divide-y divide-slate-100/80 px-5 py-3">
+            {/* Contractor costs */}
+            <div className="space-y-2 py-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Subcontractor Payments</span>
+                <span className="text-sm font-semibold text-rose-600">{formatCurrency(subCost)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Material Expenses</span>
+                <span className="text-sm font-semibold text-rose-600">{formatCurrency(matCost)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Miscellaneous Expenses</span>
+                <span className="text-sm font-semibold text-rose-600">{formatCurrency(miscCost)}</span>
+              </div>
+            </div>
+
+            {/* Construction Cost total — bold, red */}
+            <div className="flex items-center justify-between bg-rose-50/50 -mx-5 px-5 py-2.5">
+              <span className="text-sm font-bold text-slate-800">Construction Cost by Contractor</span>
+              <span className="text-sm font-extrabold text-rose-600">{formatCurrency(constructionCost)}</span>
+            </div>
+
+            {/* Owner Direct */}
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-sm font-bold text-slate-800">Owner Direct Payments</span>
+              <span className="text-sm font-bold text-slate-700">{formatCurrency(directCost)}</span>
+            </div>
+
+            {/* Total Project Cost — bold */}
+            <div className="flex items-center justify-between bg-slate-100/50 -mx-5 px-5 py-2.5">
+              <span className="text-sm font-bold text-slate-800">Total Project Cost (including owner direct)</span>
+              <span className="text-sm font-extrabold text-slate-700">{formatCurrency(totalProjectCost)}</span>
+            </div>
+          </div>
+
+          {/* Cash Balance section */}
+          <div className="border-t border-slate-200/80 bg-emerald-50/30 px-5 py-3">
+            <h3 className="mb-2 text-sm font-bold text-slate-800">Cash Balance</h3>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Commission Paid</span>
+                <span className="text-sm font-semibold text-purple-600">{formatCurrency(commissionPaid)}</span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg bg-emerald-100/60 px-3 py-2">
+                <span className="text-sm font-bold text-slate-800">Balance in Hand (after commission)</span>
+                <span className={`text-sm font-extrabold ${balanceInHand >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {formatCurrency(Math.abs(balanceInHand))}
+                  {balanceInHand < 0 && ' deficit'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {editingProject && (
           <div className="relative mt-5">
