@@ -84,53 +84,59 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   doc.line(margin, 46, pageWidth - margin, 46);
 
   // ── Cost Breakdown ──
-  let sy = 53;
-  sectionTitle('Cost Breakdown', sy);
-  (doc as any).lastAutoTable = { finalY: sy + 10 };
+  let yPos = 53;
+  yPos = sectionTitle('Cost Breakdown', yPos) + 4;
+
+  function setRgb(r: number, g: number, b: number): void {
+    doc.setTextColor(r, g, b);
+  }
+  function setFillRgb(r: number, g: number, b: number): void {
+    doc.setFillColor(r, g, b);
+  }
 
   function breakdownRow(label: string, amount: number, opts?: { bold?: boolean; color?: [number, number, number]; bg?: [number, number, number] }) {
-    const y = (doc.lastAutoTable as any).finalY + 3;
+    const y = yPos + 3;
     const rowH = opts?.bg ? 8 : 5;
 
     if (opts?.bg) {
-      (doc.setFillColor as any)(...opts.bg);
+      setFillRgb(opts.bg[0], opts.bg[1], opts.bg[2]);
       doc.rect(margin - 2, y - 2, contentWidth + 4, rowH, 'F');
     }
 
     doc.setFont('helvetica', opts?.bold ? 'bold' : 'normal');
     doc.setFontSize(10);
     if (opts?.color) {
-      (doc.setTextColor as any)(...opts.color);
+      setRgb(opts.color[0], opts.color[1], opts.color[2]);
     } else {
       doc.setTextColor(...darkText);
     }
     doc.text(label, margin, y + 1);
     doc.text(pdfCurrency(amount), pageWidth - margin, y + 1, { align: 'right' });
-    (doc as any).lastAutoTable = { finalY: y + rowH };
+    yPos = y + rowH;
   }
 
-  // Toss a real autoTable call so lastAutoTable exists for transaction tables later
-  autoTable(doc, { startY: 0, body: [], theme: 'plain' });
+  function drawSeparator() {
+    yPos += 2;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 1;
+  }
 
   breakdownRow('Subcontractor Payments', calcs.subCost);
   breakdownRow('Material Expenses', calcs.matCost);
   breakdownRow('Miscellaneous Expenses', calcs.miscCost);
   breakdownRow('Owner Direct Payments', calcs.directCost);
 
-  // Separator
-  const sepY = (doc.lastAutoTable as any).finalY + 2;
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(margin, sepY, pageWidth - margin, sepY);
-  (doc as any).lastAutoTable = { finalY: sepY + 1 };
+  drawSeparator();
 
   // Total Project Cost — bold
   breakdownRow('Total Project Cost', calcs.totalProjectCost, { bold: true, bg: [245, 245, 250] });
+  yPos += 4;
 
   // ── Cash Balance Breakdown ──
-  const cbY = (doc.lastAutoTable as any).finalY + 10;
-  sectionTitle('Cash Balance Breakdown', cbY);
-  (doc as any).lastAutoTable = { finalY: cbY + 10 };
+  yPos += 6;
+  yPos = sectionTitle('Cash Balance Breakdown', yPos) + 4;
 
   const red: [number, number, number] = [180, 30, 30];
   const green: [number, number, number] = [15, 118, 110];
@@ -138,15 +144,10 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   // Total Received (income/green)
   breakdownRow('Total Received Payments', calcs.received, { bold: true, color: green });
 
-  // Expenses paid by contractor (sub + mat + misc in red, subtracted)
+  // Expenses paid by contractor (sub + mat + misc in red)
   breakdownRow('Expenses Paid by Contractor', calcs.constructionCost, { color: red });
 
-  // Separator
-  const sep2Y = (doc.lastAutoTable as any).finalY + 2;
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(margin, sep2Y, pageWidth - margin, sep2Y);
-  (doc as any).lastAutoTable = { finalY: sep2Y + 1 };
+  drawSeparator();
 
   // Commission Paid
   breakdownRow('Commission Paid', calcs.commissionPaid, { bold: true, color: red });
@@ -159,8 +160,14 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
     bg: [240, 253, 244],
   });
 
+  yPos += 6;
+
   // ── Transaction tables ──
-  let tableY = (doc.lastAutoTable as any).finalY + 10;
+  // Dummy autoTable to initialise lastAutoTable for the table functions below
+  autoTable(doc, { startY: 0, body: [], theme: 'plain' });
+  const tablesStartY = yPos + 4;
+  autoTable(doc, { startY: tablesStartY, body: [], theme: 'plain' });
+  let tableY = tablesStartY;
 
   function addTable(
     title: string,

@@ -130,7 +130,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   };
 
   const received = project.owner_payments.reduce((s, p) => s + p.amount, 0);
-  const directCost = project.owner_direct_payments.reduce((s, p) => s + p.amount, 0);
   const subCost = project.subcontractor_payments.reduce((s, p) => s + p.amount, 0);
   const matCost = project.material_expenses.reduce((s, p) => s + p.amount, 0);
   const miscCost = project.miscellaneous_expenses.reduce((s, p) => s + p.amount, 0);
@@ -138,8 +137,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
   // Construction cost = contractor costs only (sub + material + misc)
   const constructionCost = subCost + matCost + miscCost;
-  // Total project cost = construction + owner-direct payments (informational)
-  const totalProjectCost = constructionCost + directCost;
   // Balance = received minus construction costs minus commission paid
   const balanceInHand = received - constructionCost - commissionPaid;
 
