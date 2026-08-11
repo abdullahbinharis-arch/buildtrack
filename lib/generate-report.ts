@@ -83,101 +83,81 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   doc.setLineWidth(0.5);
   doc.line(margin, 46, pageWidth - margin, 46);
 
-  // ── Cost Breakdown structured panel ──
+  // ── Cost Breakdown ──
   let sy = 53;
-  const costY = sectionTitle('Cost Breakdown', sy) + 4;
+  sectionTitle('Cost Breakdown', sy);
+  (doc as any).lastAutoTable = { finalY: sy + 10 };
 
-  const red: [number, number, number] = [220, 38, 38];
-  const purple: [number, number, number] = [147, 51, 234];
-  const green: [number, number, number] = [15, 118, 110];
-
-  /** Draw a single breakdown row: label on left, amount on right. */
-  function breakdownRow(label: string, amount: number, opts?: { bold?: boolean; color?: [number, number, number] }) {
-    const y = (doc.lastAutoTable as any).finalY + 2;
-    doc.setFont('helvetica', opts?.bold ? 'bold' : 'normal');
-    doc.setFontSize(9);
-    if (opts?.color) {
-      (doc.setTextColor as any)(...opts.color);
-    } else {
-      doc.setTextColor(...darkText);
-    }
-    doc.text(label, margin, y);
-    doc.text(pdfCurrency(amount), pageWidth - margin, y, { align: 'right' });
-    (doc as any).lastAutoTable = { finalY: y + 4 };
-  }
-
-  /** Draw a highlighted row with background fill. */
-  function highlightRow(label: string, amount: number, opts?: { color?: [number, number, number]; bg?: [number, number, number] }) {
-    const y = (doc.lastAutoTable as any).finalY + 1;
-    const rowH = 7;
+  function breakdownRow(label: string, amount: number, opts?: { bold?: boolean; color?: [number, number, number]; bg?: [number, number, number] }) {
+    const y = (doc.lastAutoTable as any).finalY + 3;
+    const rowH = opts?.bg ? 8 : 5;
 
     if (opts?.bg) {
       (doc.setFillColor as any)(...opts.bg);
-    } else {
-      doc.setFillColor(248, 250, 252);
+      doc.rect(margin - 2, y - 2, contentWidth + 4, rowH, 'F');
     }
-    doc.rect(margin - 3, y - 2, contentWidth + 6, rowH, 'F');
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
+    doc.setFont('helvetica', opts?.bold ? 'bold' : 'normal');
+    doc.setFontSize(10);
     if (opts?.color) {
       (doc.setTextColor as any)(...opts.color);
     } else {
       doc.setTextColor(...darkText);
     }
-    doc.text(label, margin, y + 1.5);
-    doc.text(pdfCurrency(amount), pageWidth - margin, y + 1.5, { align: 'right' });
-
+    doc.text(label, margin, y + 1);
+    doc.text(pdfCurrency(amount), pageWidth - margin, y + 1, { align: 'right' });
     (doc as any).lastAutoTable = { finalY: y + rowH };
   }
 
-  // Initial Y tracker — used by breakdownRow / highlightRow
-  // @ts-ignore – mutable tracker for Y position
-  (doc as any).lastAutoTable = { finalY: costY - 2 };
+  // Toss a real autoTable call so lastAutoTable exists for transaction tables later
+  autoTable(doc, { startY: 0, body: [], theme: 'plain' });
 
-  // ── Contractor costs ──
   breakdownRow('Subcontractor Payments', calcs.subCost);
   breakdownRow('Material Expenses', calcs.matCost);
   breakdownRow('Miscellaneous Expenses', calcs.miscCost);
+  breakdownRow('Owner Direct Payments', calcs.directCost);
 
   // Separator
   const sepY = (doc.lastAutoTable as any).finalY + 2;
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.4);
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
   doc.line(margin, sepY, pageWidth - margin, sepY);
-  (doc as any).lastAutoTable = { finalY: sepY };
+  (doc as any).lastAutoTable = { finalY: sepY + 1 };
 
-  // Construction Cost by Contractor — bold red
-  highlightRow('Construction Cost by Contractor', calcs.constructionCost, { color: red, bg: [254, 242, 242] });
+  // Total Project Cost — bold
+  breakdownRow('Total Project Cost', calcs.totalProjectCost, { bold: true, bg: [245, 245, 250] });
 
-  // Owner Direct
-  breakdownRow('', 0); // spacer
-  const odY = (doc.lastAutoTable as any).finalY + 1;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(...darkText);
-  doc.text('Owner Direct Payments', margin, odY);
-  doc.text(pdfCurrency(calcs.directCost), pageWidth - margin, odY, { align: 'right' });
-  (doc as any).lastAutoTable = { finalY: odY + 5 };
+  // ── Cash Balance Breakdown ──
+  const cbY = (doc.lastAutoTable as any).finalY + 10;
+  sectionTitle('Cash Balance Breakdown', cbY);
+  (doc as any).lastAutoTable = { finalY: cbY + 10 };
 
-  // Total Project Cost — bold dark
-  highlightRow('Total Project Cost (including owner direct)', calcs.totalProjectCost, { bg: [241, 245, 249] });
+  const red: [number, number, number] = [180, 30, 30];
+  const green: [number, number, number] = [15, 118, 110];
 
-  // ── Cash Balance section ──
-  const cbY = (doc.lastAutoTable as any).finalY + 8;
-  sectionTitle('Cash Balance', cbY);
+  // Total Received (income/green)
+  breakdownRow('Total Received Payments', calcs.received, { bold: true, color: green });
 
-  (doc as any).lastAutoTable = { finalY: cbY + 8 };
+  // Expenses paid by contractor (sub + mat + misc in red, subtracted)
+  breakdownRow('Expenses Paid by Contractor', calcs.constructionCost, { color: red });
 
-  breakdownRow('Commission Paid', calcs.commissionPaid, { bold: true, color: purple });
+  // Separator
+  const sep2Y = (doc.lastAutoTable as any).finalY + 2;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(margin, sep2Y, pageWidth - margin, sep2Y);
+  (doc as any).lastAutoTable = { finalY: sep2Y + 1 };
 
-  // Balance in Hand — highlighted green/red
-  const balY = (doc.lastAutoTable as any).finalY + 3;
-  highlightRow(
-    'Balance in Hand (after commission)',
-    Math.abs(calcs.balanceInHand),
-    { color: calcs.balanceInHand >= 0 ? green : red, bg: [236, 253, 245] },
-  );
+  // Commission Paid
+  breakdownRow('Commission Paid', calcs.commissionPaid, { bold: true, color: red });
+
+  // Balance in Hand — highlighted
+  const balLabel = calcs.balanceInHand >= 0 ? 'Balance in Hand' : 'Deficit';
+  breakdownRow(balLabel, Math.abs(calcs.balanceInHand), {
+    bold: true,
+    color: calcs.balanceInHand >= 0 ? green : red,
+    bg: [240, 253, 244],
+  });
 
   // ── Transaction tables ──
   let tableY = (doc.lastAutoTable as any).finalY + 10;
