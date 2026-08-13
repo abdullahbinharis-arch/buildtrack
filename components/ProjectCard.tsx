@@ -14,13 +14,11 @@ interface ProjectCardProps {
     total_expenses: number;
     total_project_cost?: number;
     profit_loss: number;
-    commission_paid: number;
   };
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const balance = project.profit_loss;
-  const commission = project.commission_paid;
 
   return (
     <Link href={`/project/${project.id}`} className="block touch-manipulation">
@@ -49,11 +47,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <p className="text-xs text-slate-500">Construction Cost</p>
               <p className="mt-0.5 font-semibold text-rose-600">{formatCurrency(project.total_expenses)}</p>
             </div>
-          </div>
-
-          <div className="mt-3 flex items-center justify-between rounded-xl bg-purple-50/60 p-2.5 sm:p-3 ring-1 ring-purple-100/70 backdrop-blur-sm">
-            <p className="text-xs text-slate-500">Commission Paid</p>
-            <p className="text-sm font-semibold text-purple-700">{formatCurrency(commission)}</p>
           </div>
 
           <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50/60 p-2.5 sm:p-3 ring-1 ring-emerald-100/70 backdrop-blur-sm">
