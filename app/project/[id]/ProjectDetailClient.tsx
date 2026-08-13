@@ -132,7 +132,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
   const stats = computeProjectStats(project);
   const received = stats.received;
-  const constructionCost = stats.constructionCost;
+  // "Construction Cost" card shows the project's full build spend (incl. owner-direct)
+  const constructionCost = stats.totalProjectCost;
   const commissionPaid = stats.commissionPaid;
   const balanceInHand = stats.balanceInHand;
 

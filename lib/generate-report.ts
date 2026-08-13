@@ -131,7 +131,7 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   breakdownRow('Total Received Payments', calcs.received, { bold: true, color: green });
 
   // Expenses paid by contractor (sub + mat + misc in red)
-  breakdownRow('Expenses Paid by Contractor', calcs.constructionCost, { color: red });
+  breakdownRow('Expenses Paid by Contractor', calcs.contractorCost, { color: red });
 
   drawSeparator();
 

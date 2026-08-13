@@ -4,7 +4,7 @@ import { computeProjectStats, toProjectSummary } from '../lib/project-stats.ts';
 
 /**
  * Fixture mirrors the real "Mehfil Apartment" project the user reported on:
- *   received 425,000 · owner-direct 261,559 · construction 312,653 (sub + mat)
+ *   received 425,000 · owner-direct 261,559 · contractor cost 312,653 (sub + mat)
  *   total project cost 574,212 · commission paid 50,000 · commission rate 11%
  */
 const mehfil = {
@@ -17,26 +17,32 @@ const mehfil = {
   commission_rate: 11,
 };
 
-test('computeProjectStats matches Mehfil Apartment — dashboard must agree with detail page', () => {
+test('computeProjectStats matches Mehfil Apartment — contractor cost and cash balance', () => {
   const s = computeProjectStats(mehfil);
   assert.equal(s.received, 425000);
-  assert.equal(s.constructionCost, 312653);
+  assert.equal(s.contractorCost, 312653);
   assert.equal(s.totalProjectCost, 574212);
   assert.equal(s.commissionPaid, 50000);
-  // Balance = received − construction cost − commission paid (the previously-mismatched figure)
+  // Cash balance = received − contractor cost − commission paid
   assert.equal(s.balanceInHand, 62347);
 });
 
-test('owner-direct payments are excluded from construction cost but included in total project cost', () => {
+test('displayed Construction Cost (total project cost) includes owner-direct payments', () => {
   const s = computeProjectStats(mehfil);
+  assert.equal(s.totalProjectCost, s.contractorCost + s.directCost);
   assert.equal(s.directCost, 261559);
-  assert.equal(s.constructionCost + s.directCost, s.totalProjectCost);
 });
 
-test('commission payouts never inflate construction cost', () => {
+test('commission payouts never inflate contractor cost', () => {
   const s = computeProjectStats(mehfil);
-  assert.equal(s.constructionCost, s.subCost + s.matCost + s.miscCost);
-  assert.notEqual(s.constructionCost, s.totalProjectCost); // owner-direct is the only difference
+  assert.equal(s.contractorCost, s.subCost + s.matCost + s.miscCost);
+  assert.notEqual(s.contractorCost, s.totalProjectCost); // owner-direct is the only difference
+});
+
+test('balance stays cash-based: owner-direct and unpaid commission are not deducted', () => {
+  const s = computeProjectStats(mehfil);
+  // Balance uses contractor cost (not total project cost) and only paid commission
+  assert.equal(s.balanceInHand, s.received - s.contractorCost - s.commissionPaid);
 });
 
 test('balance goes negative when costs and commission exceed received', () => {
@@ -60,7 +66,8 @@ test('toProjectSummary maps stats to the flat API/dashboard shape', () => {
     commission_rate: 11,
     created_at: '2026-08-12T00:00:00.000Z',
     total_received: 425000,
-    total_expenses: 312653,
+    // Construction Cost card = full build spend incl. owner-direct
+    total_expenses: 574212,
     total_project_cost: 574212,
     profit_loss: 62347,
     commission_paid: 50000,

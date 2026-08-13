@@ -5,12 +5,16 @@
  * must derive its numbers from these functions so they can never drift apart.
  *
  * Definitions:
- * - Construction cost = subcontractor + material + miscellaneous payments.
- *   Owner-direct payments are excluded: the owner paid those directly to
- *   vendors, so they never pass through the contractor's cash flow.
- * - Total project cost = construction cost + owner-direct payments (informational).
+ * - Contractor cost = subcontractor + material + miscellaneous payments —
+ *   the money the contractor actually pays out. Owner-direct payments are
+ *   excluded because the owner paid those vendors directly.
+ * - Total project cost (shown as "Construction Cost" on the dashboard and
+ *   detail cards) = contractor cost + owner-direct payments — the project's
+ *   full build spend.
  * - Commission paid = sum of recorded commission payouts.
- * - Balance in hand = received minus construction cost minus commission paid.
+ * - Balance in hand = received minus contractor cost minus commission paid.
+ *   This is a cash figure: owner-direct money never passes through the
+ *   contractor, so it is not subtracted from (or added to) the balance.
  */
 
 export interface AmountRow {
@@ -32,7 +36,7 @@ export interface ProjectStats {
   subCost: number;
   matCost: number;
   miscCost: number;
-  constructionCost: number;
+  contractorCost: number;
   totalProjectCost: number;
   commissionPaid: number;
   balanceInHand: number;
@@ -49,8 +53,8 @@ export function computeProjectStats(p: ProjectStatsInput): ProjectStats {
   const miscCost = sumAmounts(p.miscellaneous_expenses);
   const commissionPaid = sumAmounts(p.commission_payouts);
 
-  const constructionCost = subCost + matCost + miscCost;
-  const totalProjectCost = constructionCost + directCost;
+  const contractorCost = subCost + matCost + miscCost;
+  const totalProjectCost = contractorCost + directCost;
 
   return {
     received,
@@ -58,10 +62,10 @@ export function computeProjectStats(p: ProjectStatsInput): ProjectStats {
     subCost,
     matCost,
     miscCost,
-    constructionCost,
+    contractorCost,
     totalProjectCost,
     commissionPaid,
-    balanceInHand: received - constructionCost - commissionPaid,
+    balanceInHand: received - contractorCost - commissionPaid,
   };
 }
 
@@ -96,7 +100,8 @@ export function toProjectSummary(p: SummarySource): ProjectSummary {
     commission_rate: p.commission_rate,
     created_at: p.created_at.toISOString(),
     total_received: s.received,
-    total_expenses: s.constructionCost,
+    // "Construction Cost" = the project's full build spend, incl. owner-direct.
+    total_expenses: s.totalProjectCost,
     total_project_cost: s.totalProjectCost,
     profit_loss: s.balanceInHand,
     commission_paid: s.commissionPaid,
