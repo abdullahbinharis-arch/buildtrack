@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { computeProjectStats } from '@/lib/project-stats';
 
 interface ProjectReportData {
   name: string;
@@ -23,27 +24,12 @@ function pdfDate(dateStr: string): string {
   return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
-function getCalculations(data: ProjectReportData) {
-  const received = data.owner_payments.reduce((s, p) => s + p.amount, 0);
-  const directCost = data.owner_direct_payments.reduce((s, p) => s + p.amount, 0);
-  const subCost = data.subcontractor_payments.reduce((s, p) => s + p.amount, 0);
-  const matCost = data.material_expenses.reduce((s, p) => s + p.amount, 0);
-  const miscCost = data.miscellaneous_expenses.reduce((s, p) => s + p.amount, 0);
-  const commissionPaid = data.commission_payouts.reduce((s, p) => s + p.amount, 0);
-
-  const constructionCost = subCost + matCost + miscCost;
-  const totalProjectCost = constructionCost + directCost;
-  const balanceInHand = received - constructionCost - commissionPaid;
-
-  return { received, directCost, subCost, matCost, miscCost, constructionCost, totalProjectCost, commissionPaid, balanceInHand };
-}
-
 export function generateProjectReport(data: ProjectReportData): jsPDF {
   const doc = new jsPDF({ format: 'a4', unit: 'mm' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   const contentWidth = pageWidth - margin * 2;
-  const calcs = getCalculations(data);
+  const calcs = computeProjectStats(data);
 
   const brandColor: [number, number, number] = [79, 70, 229];
   const darkText: [number, number, number] = [30, 41, 59];

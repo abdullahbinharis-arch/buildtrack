@@ -16,6 +16,7 @@ import { findDuplicateIds, findDuplicateMatch } from '@/lib/find-duplicates';
 import { DuplicateConfirm } from '@/components/DuplicateConfirm';
 import { apiFetch } from '@/lib/fetch-client';
 import { generateProjectReport } from '@/lib/generate-report';
+import { computeProjectStats } from '@/lib/project-stats';
 import {
   ArrowLeft,
   HardHat,
@@ -129,16 +130,11 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     setProject(data);
   };
 
-  const received = project.owner_payments.reduce((s, p) => s + p.amount, 0);
-  const subCost = project.subcontractor_payments.reduce((s, p) => s + p.amount, 0);
-  const matCost = project.material_expenses.reduce((s, p) => s + p.amount, 0);
-  const miscCost = project.miscellaneous_expenses.reduce((s, p) => s + p.amount, 0);
-  const commissionPaid = project.commission_payouts.reduce((s, p) => s + p.amount, 0);
-
-  // Construction cost = contractor costs only (sub + material + misc)
-  const constructionCost = subCost + matCost + miscCost;
-  // Balance = received minus construction costs minus commission paid
-  const balanceInHand = received - constructionCost - commissionPaid;
+  const stats = computeProjectStats(project);
+  const received = stats.received;
+  const constructionCost = stats.constructionCost;
+  const commissionPaid = stats.commissionPaid;
+  const balanceInHand = stats.balanceInHand;
 
   const lastUpdated = useMemo(() => {
     const allDates = [
@@ -421,6 +417,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     );
   };
 
+  const TabTotal = ({ category, value }: { category: CategoryKey; value: number }) => (
+    <div className="flex shrink-0 items-baseline gap-2 rounded-xl bg-white/50 px-3 py-2 ring-1 ring-white/70 backdrop-blur-sm">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Total</span>
+      <span className={`text-lg font-bold ${CATEGORY_STYLES[category].amountClass}`}>{formatCurrency(value)}</span>
+    </div>
+  );
+
   const dateCell = (row: { date: string }) => formatDate(row.date);
 
   const allTransactions = [
@@ -663,6 +666,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   <CardTitle>Payment Received</CardTitle>
                   <CardDescription className="hidden sm:block">Money received from the project owner</CardDescription>
                 </div>
+                <TabTotal category="Owner Payment" value={received} />
               </div>
               <PaymentForm
                 key={editing?.id || 'owner-new-' + formKey}
@@ -706,6 +710,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   <CardTitle>Owner Direct Payments</CardTitle>
                   <CardDescription className="hidden sm:block">Payments made directly by the owner to vendors</CardDescription>
                 </div>
+                <TabTotal category="Owner Direct" value={stats.directCost} />
               </div>
               <ExpenseForm
                 key={editing?.id || 'owner-direct-new-' + formKey}
@@ -753,6 +758,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   <CardTitle>Subcontractor Payments</CardTitle>
                   <CardDescription className="hidden sm:block">Payments made to subcontractors and labour</CardDescription>
                 </div>
+                <TabTotal category="Subcontractor" value={stats.subCost} />
               </div>
               <PaymentForm
                 key={editing?.id || 'sub-new-' + formKey}
@@ -810,6 +816,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   <CardTitle>Material Expenses</CardTitle>
                   <CardDescription className="hidden sm:block">Direct material and operational costs</CardDescription>
                 </div>
+                <TabTotal category="Material" value={stats.matCost} />
               </div>
               <ExpenseForm
                 key={editing?.id || 'exp-new-' + formKey}
@@ -914,6 +921,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   <CardTitle>Misc Expenses</CardTitle>
                   <CardDescription className="hidden sm:block">Other project-related costs and expenses</CardDescription>
                 </div>
+                <TabTotal category="Misc" value={stats.miscCost} />
               </div>
               <ExpenseForm
                 key={editing?.id || 'misc-new-' + formKey}
@@ -961,6 +969,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   <CardTitle>Commission Payout</CardTitle>
                   <CardDescription className="hidden sm:block">Record commission amounts paid out for this project</CardDescription>
                 </div>
+                <TabTotal category="Commission Payout" value={commissionPaid} />
               </div>
               <ExpenseForm
                 key={editing?.id || 'commission-new-' + formKey}

@@ -14,13 +14,13 @@ interface ProjectCardProps {
     total_expenses: number;
     total_project_cost?: number;
     profit_loss: number;
-    commission_payable: number;
+    commission_paid: number;
   };
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const balance = project.profit_loss;
-  const commission = project.commission_payable;
+  const commission = project.commission_paid;
 
   return (
     <Link href={`/project/${project.id}`} className="block touch-manipulation">

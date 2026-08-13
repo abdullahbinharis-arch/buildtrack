@@ -20,7 +20,7 @@ interface ProjectSummary {
   total_expenses: number;
   total_project_cost?: number;
   profit_loss: number;
-  commission_payable: number;
+  commission_paid: number;
 }
 
 interface DashboardClientProps {
@@ -77,7 +77,7 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
         acc.expenses += p.total_expenses;
         acc.projectCost += p.total_project_cost ?? p.total_expenses;
         acc.balance += p.profit_loss;
-        acc.commission += p.commission_payable;
+        acc.commission += p.commission_paid;
         return acc;
       },
       { revenue: 0, expenses: 0, projectCost: 0, balance: 0, commission: 0 }

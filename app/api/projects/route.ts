@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { toProjectSummary } from '@/lib/project-stats';
 
 export async function GET() {
   const projects = await prisma.project.findMany({
@@ -14,36 +15,7 @@ export async function GET() {
     orderBy: { created_at: 'desc' },
   });
 
-  const summary = projects.map((p) => {
-    const received = p.owner_payments.reduce((s, x) => s + x.amount, 0);
-    const directCost = p.owner_direct_payments.reduce((s, x) => s + x.amount, 0);
-    const subCost = p.subcontractor_payments.reduce((s, x) => s + x.amount, 0);
-    const matCost = p.material_expenses.reduce((s, x) => s + x.amount, 0);
-    const miscCost = p.miscellaneous_expenses.reduce((s, x) => s + x.amount, 0);
-    const commissionPaid = p.commission_payouts.reduce((s, x) => s + x.amount, 0);
-
-    // Construction cost = contractor costs only (no owner direct, no commission)
-    const constructionCost = subCost + matCost + miscCost;
-    // Total project cost = construction + owner-direct payments (informational)
-    const totalProjectCost = constructionCost + directCost;
-    // Balance = received minus construction costs minus commission paid
-    const balanceInHand = received - constructionCost - commissionPaid;
-
-    return {
-      id: p.id,
-      name: p.name,
-      estimated_value: p.estimated_value,
-      commission_rate: p.commission_rate,
-      created_at: p.created_at,
-      total_received: received,
-      total_expenses: constructionCost,
-      total_project_cost: totalProjectCost,
-      profit_loss: balanceInHand,
-      commission_payable: commissionPaid,
-    };
-  });
-
-  return NextResponse.json(summary);
+  return NextResponse.json(projects.map(toProjectSummary));
 }
 
 export async function POST(req: NextRequest) {

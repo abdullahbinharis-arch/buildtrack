@@ -10,6 +10,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "ts-node scripts/migrate-legacy.ts",
+    "test": "node --test tests/*.test.ts",
     "generate-template": "ts-node scripts/generate-template.ts",
     "postinstall": "prisma generate"
   },
