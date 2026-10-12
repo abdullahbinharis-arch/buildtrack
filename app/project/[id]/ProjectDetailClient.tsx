@@ -622,7 +622,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-5">
-          <SummaryCard label="Contract" value={formatCurrency(project.estimated_value)} icon={Receipt} />
+          <SummaryCard label="Owner Direct" value={formatCurrency(stats.directCost)} icon={Receipt} />
           <SummaryCard label="Received" value={formatCurrency(received)} tone="success" icon={Wallet} />
           <SummaryCard label="Construction Cost" value={formatCurrency(constructionCost)} tone="danger" icon={Users} />
           <SummaryCard label="Commission Paid" value={formatCurrency(commissionPaid)} tone={commissionPaid > 0 ? 'info' : 'neutral'} icon={Percent} />
