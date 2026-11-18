@@ -10,10 +10,12 @@ interface ProjectCardProps {
     name: string;
     estimated_value: number;
     commission_rate: number;
+    archived?: boolean;
     total_received: number;
     total_expenses: number;
     total_project_cost?: number;
     profit_loss: number;
+    liabilities?: number;
   };
 }
 
@@ -35,7 +37,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 <p className="text-xs text-slate-500">Construction site</p>
               </div>
             </div>
-            <Badge variant="info">Active</Badge>
+            {project.archived ? (
+              <Badge variant="neutral">Archived</Badge>
+            ) : (
+              <Badge variant="info">Active</Badge>
+            )}
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -56,6 +62,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
               {balance < 0 && ' deficit'}
             </p>
           </div>
+
+          {(project.liabilities ?? 0) > 0 && (
+            <div className="mt-2 flex items-center justify-between rounded-xl bg-amber-50/60 p-2.5 sm:p-3 ring-1 ring-amber-100/70 backdrop-blur-sm">
+              <p className="text-xs text-slate-500">Liabilities</p>
+              <p className="text-sm font-semibold text-amber-700">{formatCurrency(project.liabilities ?? 0)}</p>
+            </div>
+          )}
 
           <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-brand-600 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
             View project

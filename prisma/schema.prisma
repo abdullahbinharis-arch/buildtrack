@@ -12,6 +12,7 @@ model Project {
   name            String
   estimated_value Float
   commission_rate Float    @default(10)
+  archived        Boolean  @default(false)
   created_at      DateTime @default(now())
 
   owner_payments         OwnerPayment[]
@@ -64,6 +65,7 @@ model MaterialExpense {
   amount      Float
   date        DateTime
   description String?
+  paid        Boolean  @default(true)
   project     Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
 }
 
@@ -73,5 +75,6 @@ model MiscellaneousExpense {
   amount      Float
   date        DateTime
   description String?
+  paid        Boolean  @default(true)
   project     Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
 }

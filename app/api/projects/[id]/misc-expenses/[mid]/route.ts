@@ -12,6 +12,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         amount: body.amount,
         date: new Date(body.date),
         description: body.description || null,
+        paid: typeof body.paid === 'boolean' ? body.paid : true,
       },
     });
     return NextResponse.json(expense);

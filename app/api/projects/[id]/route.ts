@@ -22,10 +22,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function PUT(req: NextRequest, { params }: Params) {
   try {
     const body = await req.json();
-    const data: { name?: string; estimated_value?: number; commission_rate?: number } = {};
+    const data: { name?: string; estimated_value?: number; commission_rate?: number; archived?: boolean } = {};
     if (typeof body.name === 'string') data.name = body.name;
     if (typeof body.estimated_value === 'number') data.estimated_value = body.estimated_value;
     if (typeof body.commission_rate === 'number') data.commission_rate = body.commission_rate;
+    if (typeof body.archived === 'boolean') data.archived = body.archived;
 
     const project = await prisma.project.update({
       where: { id: params.id },

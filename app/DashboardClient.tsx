@@ -7,7 +7,7 @@ import { ProjectForm } from '@/components/ProjectForm';
 import { formatCurrency } from '@/lib/utils';
 import { apiFetch } from '@/lib/fetch-client';
 import {
-  HardHat, Download, Plus, TrendingUp, Wallet, PiggyBank, Building2, Percent,
+  HardHat, Download, Plus, TrendingUp, Wallet, PiggyBank, Building2, Percent, Receipt,
 } from 'lucide-react';
 
 interface ProjectSummary {
@@ -15,12 +15,14 @@ interface ProjectSummary {
   name: string;
   estimated_value: number;
   commission_rate: number;
+  archived: boolean;
   created_at: string;
   total_received: number;
   total_expenses: number;
   total_project_cost?: number;
   profit_loss: number;
   commission_paid: number;
+  liabilities: number;
 }
 
 interface DashboardClientProps {
@@ -31,6 +33,7 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
   const router = useRouter();
   const [projects, setProjects] = useState<ProjectSummary[]>(initialProjects);
   const [showForm, setShowForm] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     // If API key is set on the server but not in sessionStorage, redirect to login
@@ -70,19 +73,24 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
     window.URL.revokeObjectURL(url);
   };
 
+  const activeProjects = useMemo(() => projects.filter((p) => !p.archived), [projects]);
+  const archivedProjects = useMemo(() => projects.filter((p) => p.archived), [projects]);
+  const visibleProjects = showArchived ? archivedProjects : activeProjects;
+
   const totals = useMemo(() => {
-    return projects.reduce(
+    return activeProjects.reduce(
       (acc, p) => {
         acc.revenue += p.total_received;
         acc.expenses += p.total_expenses;
         acc.projectCost += p.total_project_cost ?? p.total_expenses;
         acc.balance += p.profit_loss;
         acc.commission += p.commission_paid;
+        acc.liabilities += p.liabilities ?? 0;
         return acc;
       },
-      { revenue: 0, expenses: 0, projectCost: 0, balance: 0, commission: 0 }
+      { revenue: 0, expenses: 0, projectCost: 0, balance: 0, commission: 0, liabilities: 0 }
     );
-  }, [projects]);
+  }, [activeProjects]);
 
   return (
     <>
@@ -120,14 +128,14 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
       </div>
 
       {/* Stats — matching project detail summary cards */}
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div className="flex items-center gap-3 rounded-2xl bg-white/50 p-4 ring-1 ring-white/70 backdrop-blur-md transition-colors hover:bg-white/70">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100/80 text-brand-700 ring-1 ring-white/70 backdrop-blur-sm">
             <Building2 className="h-5 w-5" />
           </div>
           <div>
             <p className="text-xs text-slate-500">Active Projects</p>
-            <p className="text-lg font-bold text-slate-900">{projects.length}</p>
+            <p className="text-lg font-bold text-slate-900">{activeProjects.length}</p>
           </div>
         </div>
 
@@ -162,6 +170,16 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
         </div>
 
         <div className="flex items-center gap-3 rounded-2xl bg-white/50 p-4 ring-1 ring-white/70 backdrop-blur-md transition-colors hover:bg-white/70">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100/80 text-amber-700 ring-1 ring-white/70 backdrop-blur-sm">
+            <Receipt className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs text-slate-500">Liabilities (Credit)</p>
+            <p className="text-lg font-bold text-amber-600">{formatCurrency(totals.liabilities)}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-2xl bg-white/50 p-4 ring-1 ring-white/70 backdrop-blur-md transition-colors hover:bg-white/70">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100/80 text-emerald-700 ring-1 ring-white/70 backdrop-blur-sm">
             <PiggyBank className="h-5 w-5" />
           </div>
@@ -183,20 +201,46 @@ export default function DashboardClient({ initialProjects }: DashboardClientProp
 
       {/* Projects */}
       <div className="mt-8">
-        <h2 className="section-title">Projects</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="section-title">Projects</h2>
+          {archivedProjects.length > 0 && (
+            <div className="flex rounded-xl bg-white/50 p-1 ring-1 ring-white/70 backdrop-blur-sm">
+              <button
+                onClick={() => setShowArchived(false)}
+                className={`min-h-[36px] rounded-lg px-4 text-sm font-semibold transition-colors ${
+                  !showArchived ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Active ({activeProjects.length})
+              </button>
+              <button
+                onClick={() => setShowArchived(true)}
+                className={`min-h-[36px] rounded-lg px-4 text-sm font-semibold transition-colors ${
+                  showArchived ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Archived ({archivedProjects.length})
+              </button>
+            </div>
+          )}
+        </div>
         <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((p) => (
+          {visibleProjects.map((p) => (
             <ProjectCard key={p.id} project={p} />
           ))}
         </div>
 
-        {projects.length === 0 && (
+        {visibleProjects.length === 0 && (
           <div className="mt-6 flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/80 bg-white/40 p-10 text-center backdrop-blur-xl">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/60 text-slate-400 ring-1 ring-white/70">
               <HardHat className="h-6 w-6" />
             </div>
-            <p className="mt-3 text-sm font-semibold text-slate-900">No projects yet</p>
-            <p className="text-xs text-slate-500">Click “New Project” to get started.</p>
+            <p className="mt-3 text-sm font-semibold text-slate-900">
+              {showArchived ? 'No archived projects' : 'No projects yet'}
+            </p>
+            <p className="text-xs text-slate-500">
+              {showArchived ? 'Completed projects you archive will appear here.' : 'Click “New Project” to get started.'}
+            </p>
           </div>
         )}
       </div>

@@ -5,12 +5,14 @@ export interface ExpenseFormData {
   amount: number;
   date: string;
   description?: string | null;
+  paid?: boolean;
 }
 
 export interface ExpenseFormInput {
   amount?: string | number | null;
   date?: string | Date | null;
   description?: string | null;
+  paid?: boolean | null;
 }
 
 interface ExpenseFormProps {
@@ -18,18 +20,26 @@ interface ExpenseFormProps {
   onSubmit: (data: ExpenseFormData) => void;
   onCancel?: () => void;
   hideDescription?: boolean;
+  /** Shows a Paid / Credit (pay later) toggle for bill-style expenses. */
+  showPaidToggle?: boolean;
 }
 
-export function ExpenseForm({ initial, onSubmit, onCancel, hideDescription }: ExpenseFormProps) {
+export function ExpenseForm({ initial, onSubmit, onCancel, hideDescription, showPaidToggle }: ExpenseFormProps) {
   const [amount, setAmount] = useState<string | number>(initial?.amount ?? '');
   const [date, setDate] = useState<string>(
     initial?.date ? new Date(initial.date).toISOString().split('T')[0] : ''
   );
   const [description, setDescription] = useState<string>(initial?.description ?? '');
+  const [paid, setPaid] = useState<boolean>(initial?.paid ?? true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ amount: Number(amount), date, description: hideDescription ? undefined : description });
+    onSubmit({
+      amount: Number(amount),
+      date,
+      description: hideDescription ? undefined : description,
+      paid: showPaidToggle ? paid : undefined,
+    });
   };
 
   return (
@@ -41,6 +51,31 @@ export function ExpenseForm({ initial, onSubmit, onCancel, hideDescription }: Ex
           <Input label="Description" placeholder="What was purchased?" value={description} onChange={(e) => setDescription(e.target.value)} />
         )}
       </div>
+      {showPaidToggle && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Payment</span>
+          <div className="flex rounded-xl bg-white/50 p-1 ring-1 ring-white/70 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setPaid(true)}
+              className={`min-h-[36px] rounded-lg px-4 text-sm font-semibold transition-colors ${
+                paid ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Paid
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaid(false)}
+              className={`min-h-[36px] rounded-lg px-4 text-sm font-semibold transition-colors ${
+                !paid ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Credit (pay later)
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           type="submit"

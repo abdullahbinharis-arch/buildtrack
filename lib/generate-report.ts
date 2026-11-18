@@ -130,13 +130,19 @@ export function generateProjectReport(data: ProjectReportData): jsPDF {
   // Total Received (income/green)
   breakdownRow('Total Received Payments', calcs.received, { bold: true, color: green });
 
-  // Expenses paid by contractor (sub + mat + misc in red)
-  breakdownRow('Expenses Paid by Contractor', calcs.contractorCost, { color: red });
+  // Expenses paid by contractor (paid sub + mat + misc in red)
+  breakdownRow('Expenses Paid by Contractor', calcs.contractorCost - calcs.liabilities, { color: red });
 
   drawSeparator();
 
   // Commission Paid
   breakdownRow('Commission Paid', calcs.commissionPaid, { bold: true, color: red });
+
+  // Credit bills still owed to vendors
+  if (calcs.liabilities > 0) {
+    const amber: [number, number, number] = [180, 120, 10];
+    breakdownRow('Liabilities (Unpaid Credit Bills)', calcs.liabilities, { bold: true, color: amber });
+  }
 
   // Balance in Hand — highlighted
   const balLabel = calcs.balanceInHand >= 0 ? 'Balance in Hand' : 'Deficit';

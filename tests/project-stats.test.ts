@@ -57,6 +57,7 @@ test('toProjectSummary maps stats to the flat API/dashboard shape', () => {
     name: 'Mehfil Apartment',
     estimated_value: 0,
     commission_rate: 11,
+    archived: false,
     created_at: new Date('2026-08-12T00:00:00Z'),
   });
   assert.deepEqual(summary, {
@@ -64,6 +65,7 @@ test('toProjectSummary maps stats to the flat API/dashboard shape', () => {
     name: 'Mehfil Apartment',
     estimated_value: 0,
     commission_rate: 11,
+    archived: false,
     created_at: '2026-08-12T00:00:00.000Z',
     total_received: 425000,
     // Construction Cost card = full build spend incl. owner-direct
@@ -71,5 +73,35 @@ test('toProjectSummary maps stats to the flat API/dashboard shape', () => {
     total_project_cost: 574212,
     profit_loss: 62347,
     commission_paid: 50000,
+    liabilities: 0,
   });
+});
+
+test('credit bills count toward project cost and show as liabilities', () => {
+  const s = computeProjectStats({
+    ...mehfil,
+    material_expenses: [{ amount: 100000 }, { amount: 12653, paid: false }],
+    miscellaneous_expenses: [{ amount: 5000, paid: false }],
+  });
+  // Credit bills stay in the construction cost
+  assert.equal(s.contractorCost, 200000 + 112653 + 5000);
+  assert.equal(s.liabilities, 12653 + 5000);
+});
+
+test('balance is cash-based: unpaid credit bills are not deducted', () => {
+  const withCredit = computeProjectStats({
+    ...mehfil,
+    material_expenses: [{ amount: 112653, paid: false }],
+  });
+  // Cash out = 200000 subcontractor only; the 112653 bill is still owed
+  assert.equal(withCredit.balanceInHand, 425000 - 200000 - 50000);
+  // Once paid, the same expense reduces the balance
+  const settled = computeProjectStats(mehfil);
+  assert.equal(settled.balanceInHand, 425000 - 312653 - 50000);
+});
+
+test('rows without a paid flag are treated as paid (legacy data)', () => {
+  const s = computeProjectStats(mehfil);
+  assert.equal(s.liabilities, 0);
+  assert.equal(s.balanceInHand, 62347);
 });

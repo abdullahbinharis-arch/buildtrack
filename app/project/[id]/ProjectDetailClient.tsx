@@ -31,6 +31,9 @@ import {
   Package,
   Receipt,
   Percent,
+  Archive,
+  ArchiveRestore,
+  CheckCircle2,
 } from 'lucide-react';
 
 const TABS = ['All Transactions', 'Payment Received', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Misc Expenses', 'Commission Payout'];
@@ -40,6 +43,7 @@ export interface ProjectWithRecords {
   name: string;
   estimated_value: number;
   commission_rate: number;
+  archived: boolean;
   owner_payments: OwnerPaymentRow[];
   owner_direct_payments: OwnerDirectPaymentRow[];
   subcontractor_payments: SubcontractorPaymentRow[];
@@ -74,6 +78,7 @@ interface MaterialExpenseRow {
   date: string;
   amount: number;
   description: string | null;
+  paid?: boolean;
 }
 
 interface CommissionPayoutRow {
@@ -88,6 +93,7 @@ interface MiscellaneousExpenseRow {
   date: string;
   amount: number;
   description: string | null;
+  paid?: boolean;
 }
 
 interface ProjectDetailClientProps {
@@ -135,7 +141,36 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   // "Construction Cost" card shows the project's full build spend (incl. owner-direct)
   const constructionCost = stats.totalProjectCost;
   const commissionPaid = stats.commissionPaid;
+  const liabilities = stats.liabilities;
   const balanceInHand = stats.balanceInHand;
+
+  const handleToggleArchive = async () => {
+    await apiFetch(`/api/projects/${project.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archived: !project.archived }),
+    });
+    fetchProject();
+  };
+
+  const handleMarkPaid = async (kind: 'expense' | 'misc', row: MaterialExpenseRow | MiscellaneousExpenseRow) => {
+    const endpoint = kind === 'expense'
+      ? `/api/projects/${project.id}/material-expenses/${row.id}`
+      : `/api/projects/${project.id}/misc-expenses/${row.id}`;
+    await apiFetch(endpoint, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: row.amount, date: row.date, description: row.description, paid: true }),
+    });
+    fetchProject();
+  };
+
+  /* Amber "Credit" pill shown on unpaid bill rows. */
+  const CreditBadge = () => (
+    <span className="ml-2 inline-flex items-center rounded-full bg-amber-100/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-white/60">
+      Credit
+    </span>
+  );
 
   const lastUpdated = useMemo(() => {
     const allDates = [
@@ -389,8 +424,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   }: {
     label: string;
     value: string;
-    tone?: 'neutral' | 'success' | 'danger' | 'info';
-    valueTone?: 'neutral' | 'success' | 'danger' | 'info';
+    tone?: 'neutral' | 'success' | 'danger' | 'info' | 'warning';
+    valueTone?: 'neutral' | 'success' | 'danger' | 'info' | 'warning';
     icon: React.ElementType;
   }) => {
     const toneClasses = {
@@ -398,12 +433,14 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       success: 'bg-emerald-100/80 text-emerald-700',
       danger: 'bg-rose-100/80 text-rose-700',
       info: 'bg-brand-100/80 text-brand-700',
+      warning: 'bg-amber-100/80 text-amber-700',
     };
     const valueClasses = {
       neutral: 'text-slate-900',
       success: 'text-emerald-600',
       danger: 'text-rose-600',
       info: 'text-brand-600',
+      warning: 'text-amber-600',
     };
     return (
       <div className="flex items-center gap-3 rounded-2xl bg-white/50 p-4 ring-1 ring-white/70 backdrop-blur-md transition-colors hover:bg-white/70">
@@ -564,7 +601,11 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-3xl">{project.name}</h1>
-                <Badge variant="info">Active</Badge>
+                {project.archived ? (
+                  <Badge variant="neutral">Archived</Badge>
+                ) : (
+                  <Badge variant="info">Active</Badge>
+                )}
               </div>
               <p className="text-xs text-slate-500">Construction site financial overview</p>
               {lastUpdated && (
@@ -581,6 +622,22 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
             >
               <Pencil className="h-4 w-4" />
               Edit
+            </button>
+            <button
+              onClick={handleToggleArchive}
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-white/80 bg-white/50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm transition-colors hover:bg-white/70 sm:text-sm"
+            >
+              {project.archived ? (
+                <>
+                  <ArchiveRestore className="h-4 w-4" />
+                  Unarchive
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4" />
+                  Archive
+                </>
+              )}
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -621,11 +678,12 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-5">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 sm:grid-cols-3 xl:grid-cols-6">
           <SummaryCard label="Owner Direct" value={formatCurrency(stats.directCost)} icon={Receipt} />
           <SummaryCard label="Received" value={formatCurrency(received)} tone="success" icon={Wallet} />
           <SummaryCard label="Construction Cost" value={formatCurrency(constructionCost)} tone="danger" icon={Users} />
           <SummaryCard label="Commission Paid" value={formatCurrency(commissionPaid)} tone={commissionPaid > 0 ? 'info' : 'neutral'} icon={Percent} />
+          <SummaryCard label="Liabilities" value={formatCurrency(liabilities)} tone={liabilities > 0 ? 'warning' : 'neutral'} valueTone={liabilities > 0 ? 'warning' : 'neutral'} icon={FileText} />
           <SummaryCard label="Balance" value={formatCurrency(Math.abs(balanceInHand))} tone={balanceInHand >= 0 ? 'success' : 'danger'} valueTone={balanceInHand >= 0 ? 'success' : 'danger'} icon={Package} />
         </div>
 
@@ -822,6 +880,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <ExpenseForm
                 key={editing?.id || 'exp-new-' + formKey}
                 initial={editing as MaterialExpenseRow | undefined}
+                showPaidToggle
                 onSubmit={submitExpense}
                 onCancel={editing ? () => setEditing(null) : undefined}
               />
@@ -829,7 +888,30 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Material" row={r} /> },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <>
+                        <AmountCell category="Material" row={r} />
+                        {r.paid === false && <CreditBadge />}
+                      </>
+                    ),
+                  },
+                  {
+                    key: 'id',
+                    label: '',
+                    render: (r) =>
+                      r.paid === false ? (
+                        <button
+                          onClick={() => handleMarkPaid('expense', r)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50/80 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/60 transition-colors hover:bg-emerald-100/80"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Mark paid
+                        </button>
+                      ) : null,
+                  },
                 ]}
                 rows={project.material_expenses}
                 onEdit={(r) => setEditing(r)}
@@ -850,7 +932,17 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     <p className={`text-lg font-bold ${CATEGORY_STYLES.Material.amountClass}`}>
                       {CATEGORY_STYLES.Material.sign} {formatCurrency(row.amount)}
                       {dupIds.has(row.id) && <DuplicateBadge />}
+                      {row.paid === false && <CreditBadge />}
                     </p>
+                    {row.paid === false && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleMarkPaid('expense', row); }}
+                        className="mt-2 inline-flex min-h-[36px] items-center gap-1 rounded-lg bg-emerald-50/80 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/60 transition-colors hover:bg-emerald-100/80"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Mark paid
+                      </button>
+                    )}
                   </>
                 )}
                 getCardDate={(row) => row.date}
@@ -882,7 +974,12 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                   {
                     key: 'amount',
                     label: 'Amount',
-                    render: (r) => <AmountCell category={r.category as CategoryKey} row={r} />,
+                    render: (r) => (
+                      <>
+                        <AmountCell category={r.category as CategoryKey} row={r} />
+                        {'paid' in r && r.paid === false && <CreditBadge />}
+                      </>
+                    ),
                   },
                 ]}
                 rows={allTransactions}
@@ -906,6 +1003,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                       <p className={`text-lg font-bold ${style.amountClass}`}>
                         {formatCurrency(row.amount)}
                         {dupIds.has(row.id) && <DuplicateBadge />}
+                        {'paid' in row && row.paid === false && <CreditBadge />}
                       </p>
                     </>
                   );
@@ -927,6 +1025,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
               <ExpenseForm
                 key={editing?.id || 'misc-new-' + formKey}
                 initial={editing as MiscellaneousExpenseRow | undefined}
+                showPaidToggle
                 onSubmit={submitMisc}
                 onCancel={editing ? () => setEditing(null) : undefined}
               />
@@ -934,7 +1033,30 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                 columns={[
                   { key: 'date', label: 'Date', render: dateCell },
                   { key: 'description', label: 'Description' },
-                  { key: 'amount', label: 'Amount', render: (r) => <AmountCell category="Misc" row={r} /> },
+                  {
+                    key: 'amount',
+                    label: 'Amount',
+                    render: (r) => (
+                      <>
+                        <AmountCell category="Misc" row={r} />
+                        {r.paid === false && <CreditBadge />}
+                      </>
+                    ),
+                  },
+                  {
+                    key: 'id',
+                    label: '',
+                    render: (r) =>
+                      r.paid === false ? (
+                        <button
+                          onClick={() => handleMarkPaid('misc', r)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50/80 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/60 transition-colors hover:bg-emerald-100/80"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Mark paid
+                        </button>
+                      ) : null,
+                  },
                 ]}
                 rows={project.miscellaneous_expenses}
                 onEdit={(r) => setEditing(r)}
@@ -955,7 +1077,17 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
                     <p className={`text-lg font-bold ${CATEGORY_STYLES.Misc.amountClass}`}>
                       {CATEGORY_STYLES.Misc.sign} {formatCurrency(row.amount)}
                       {dupIds.has(row.id) && <DuplicateBadge />}
+                      {row.paid === false && <CreditBadge />}
                     </p>
+                    {row.paid === false && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleMarkPaid('misc', row); }}
+                        className="mt-2 inline-flex min-h-[36px] items-center gap-1 rounded-lg bg-emerald-50/80 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/60 transition-colors hover:bg-emerald-100/80"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Mark paid
+                      </button>
+                    )}
                   </>
                 )}
                 getCardDate={(row) => row.date}

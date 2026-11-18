@@ -57,7 +57,7 @@ export async function GET() {
     });
 
     const misc = [
-      ['id', 'project_id', 'project_name', 'date', 'amount', 'description'],
+      ['id', 'project_id', 'project_name', 'date', 'amount', 'description', 'paid'],
       ...miscExpenses.map((e) => [
         e.id,
         e.project_id,
@@ -65,11 +65,12 @@ export async function GET() {
         formatDate(e.date),
         e.amount,
         e.description || '',
+        e.paid ? 'yes' : 'credit',
       ]),
     ];
 
     const expense = [
-      ['id', 'project_id', 'project_name', 'date', 'amount', 'description'],
+      ['id', 'project_id', 'project_name', 'date', 'amount', 'description', 'paid'],
       ...materialExpenses.map((e) => [
         e.id,
         e.project_id,
@@ -77,6 +78,7 @@ export async function GET() {
         formatDate(e.date),
         e.amount,
         e.description || '',
+        e.paid ? 'yes' : 'credit',
       ]),
     ];
 
