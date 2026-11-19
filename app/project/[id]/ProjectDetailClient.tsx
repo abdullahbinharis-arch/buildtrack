@@ -113,6 +113,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formKey, setFormKey] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
+  const [asOfDate, setAsOfDate] = useState<string>('');
   const [projectList, setProjectList] = useState<{ id: string; name: string }[]>([]);
   const [showProjectSwitcher, setShowProjectSwitcher] = useState(false);
   const projectSwitcherRef = useRef<HTMLDivElement>(null);
@@ -138,7 +139,22 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     setProject(data);
   };
 
-  const stats = computeProjectStats(project);
+  /* When an "as of" date is chosen, stats are computed only from transactions
+     dated on or before that day (inclusive). Tables still show everything. */
+  const stats = useMemo(() => {
+    if (!asOfDate) return computeProjectStats(project);
+    const cutoff = new Date(asOfDate + 'T23:59:59.999');
+    const upTo = <T extends { date: string }>(rows: T[]) =>
+      rows.filter((r) => new Date(r.date) <= cutoff);
+    return computeProjectStats({
+      owner_payments: upTo(project.owner_payments),
+      owner_direct_payments: upTo(project.owner_direct_payments),
+      subcontractor_payments: upTo(project.subcontractor_payments),
+      material_expenses: upTo(project.material_expenses),
+      miscellaneous_expenses: upTo(project.miscellaneous_expenses),
+      commission_payouts: upTo(project.commission_payouts),
+    });
+  }, [project, asOfDate]);
   const received = stats.received;
   // "Construction Cost" card shows the project's full build spend (incl. owner-direct)
   const constructionCost = stats.totalProjectCost;
@@ -690,7 +706,34 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        {/* As-of date filter — recomputes the summary cards using only transactions up to the chosen date */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-5">
+          <label htmlFor="as-of-date" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Balance as of
+          </label>
+          <input
+            id="as-of-date"
+            type="date"
+            value={asOfDate}
+            onChange={(e) => setAsOfDate(e.target.value)}
+            className="min-h-[36px] rounded-lg border border-white/80 bg-white/60 px-2.5 py-1.5 text-sm text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+          />
+          {asOfDate && (
+            <button
+              onClick={() => setAsOfDate('')}
+              className="min-h-[36px] rounded-lg px-2.5 text-xs font-semibold text-brand-600 transition-colors hover:bg-white/60"
+            >
+              Clear
+            </button>
+          )}
+          {asOfDate && (
+            <span className="rounded-full bg-brand-100/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-white/60">
+              Showing figures as of {formatDate(asOfDate)}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 xl:grid-cols-6">
           <SummaryCard label="Owner Direct" value={formatCurrency(stats.directCost)} icon={Receipt} />
           <SummaryCard label="Owner Payments Received" value={formatCurrency(received)} tone="success" icon={Wallet} />
           <SummaryCard label="Construction Cost" value={formatCurrency(constructionCost)} tone="danger" icon={Users} />
