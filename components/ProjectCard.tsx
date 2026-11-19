@@ -56,7 +56,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
 
           <div className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50/60 p-2.5 sm:p-3 ring-1 ring-emerald-100/70 backdrop-blur-sm">
-            <p className="text-xs text-slate-500">Balance</p>
+            <p className="text-xs text-slate-500">Balance in Hand</p>
             <p className={`text-sm font-semibold ${balance >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
               {formatCurrency(Math.abs(balance))}
               {balance < 0 && ' deficit'}

@@ -8,6 +8,7 @@ import { ExpenseForm, ExpenseFormData } from '@/components/ExpenseForm';
 import { ProjectForm } from '@/components/ProjectForm';
 import { DataTable } from '@/components/DataTable';
 import { DeleteConfirm } from '@/components/DeleteConfirm';
+import { Toast } from '@/components/ui/Toast';
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { cn, formatCurrency, formatDate } from '@/lib/utils';
@@ -111,6 +112,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const [importResult, setImportResult] = useState<{ created: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formKey, setFormKey] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
   const [projectList, setProjectList] = useState<{ id: string; name: string }[]>([]);
   const [showProjectSwitcher, setShowProjectSwitcher] = useState(false);
   const projectSwitcherRef = useRef<HTMLDivElement>(null);
@@ -150,6 +152,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ archived: !project.archived }),
     });
+    setToast(project.archived ? 'Project unarchived' : 'Project archived');
     fetchProject();
   };
 
@@ -162,6 +165,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount: row.amount, date: row.date, description: row.description, paid: true }),
     });
+    setToast('Marked as paid');
     fetchProject();
   };
 
@@ -228,6 +232,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       body: JSON.stringify(data),
     });
     setEditingProject(false);
+    setToast('Project updated');
     fetchProject();
   };
 
@@ -290,20 +295,20 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     rows: { id: string; date: string; amount: number }[],
     data: { date: string; amount: number },
     doSubmit: () => Promise<void>
-  ) => {
+  ): Promise<void> => {
     const match = findDuplicateMatch(rows, data, editing?.id);
     if (!match) {
-      void doSubmit();
-      return;
+      return doSubmit();
     }
     setPendingDuplicate({
       message: `${formatCurrency(data.amount)} was already recorded on ${formatDate(match.date)}. Add anyway?`,
       proceed: () => void doSubmit(),
     });
+    return Promise.resolve();
   };
 
   const submitOwner = async (data: PaymentFormData) => {
-    checkDuplicateAndSubmit(project.owner_payments, data, async () => {
+    await checkDuplicateAndSubmit(project.owner_payments, data, async () => {
       const base = { amount: data.amount, date: data.date };
       const url = editing
         ? `/api/projects/${project.id}/owner-payments/${editing.id}`
@@ -315,12 +320,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       });
       setEditing(null);
       setFormKey((k) => k + 1);
+      setToast(editing ? 'Updated successfully' : 'Added successfully');
       fetchProject();
     });
   };
 
   const submitOwnerDirect = async (data: ExpenseFormData) => {
-    checkDuplicateAndSubmit(project.owner_direct_payments, data, async () => {
+    await checkDuplicateAndSubmit(project.owner_direct_payments, data, async () => {
       const url = editing
         ? `/api/projects/${project.id}/owner-direct-payments/${editing.id}`
         : `/api/projects/${project.id}/owner-direct-payments`;
@@ -331,13 +337,14 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       });
       setEditing(null);
       setFormKey((k) => k + 1);
+      setToast(editing ? 'Updated successfully' : 'Added successfully');
       fetchProject();
     });
   };
 
   const submitSub = async (data: PaymentFormData) => {
     if (!('type' in data)) return;
-    checkDuplicateAndSubmit(project.subcontractor_payments, data, async () => {
+    await checkDuplicateAndSubmit(project.subcontractor_payments, data, async () => {
       const url = editing
         ? `/api/projects/${project.id}/subcontractor-payments/${editing.id}`
         : `/api/projects/${project.id}/subcontractor-payments`;
@@ -348,12 +355,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       });
       setEditing(null);
       setFormKey((k) => k + 1);
+      setToast(editing ? 'Updated successfully' : 'Added successfully');
       fetchProject();
     });
   };
 
   const submitExpense = async (data: ExpenseFormData) => {
-    checkDuplicateAndSubmit(project.material_expenses, data, async () => {
+    await checkDuplicateAndSubmit(project.material_expenses, data, async () => {
       const url = editing
         ? `/api/projects/${project.id}/material-expenses/${editing.id}`
         : `/api/projects/${project.id}/material-expenses`;
@@ -364,12 +372,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       });
       setEditing(null);
       setFormKey((k) => k + 1);
+      setToast(editing ? 'Updated successfully' : 'Added successfully');
       fetchProject();
     });
   };
 
   const submitMisc = async (data: ExpenseFormData) => {
-    checkDuplicateAndSubmit(project.miscellaneous_expenses, data, async () => {
+    await checkDuplicateAndSubmit(project.miscellaneous_expenses, data, async () => {
       const url = editing
         ? `/api/projects/${project.id}/misc-expenses/${editing.id}`
         : `/api/projects/${project.id}/misc-expenses`;
@@ -380,12 +389,13 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       });
       setEditing(null);
       setFormKey((k) => k + 1);
+      setToast(editing ? 'Updated successfully' : 'Added successfully');
       fetchProject();
     });
   };
 
   const submitCommissionPayout = async (data: ExpenseFormData) => {
-    checkDuplicateAndSubmit(project.commission_payouts, data, async () => {
+    await checkDuplicateAndSubmit(project.commission_payouts, data, async () => {
       const url = editing
         ? `/api/projects/${project.id}/commission-payouts/${editing.id}`
         : `/api/projects/${project.id}/commission-payouts`;
@@ -396,6 +406,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       });
       setEditing(null);
       setFormKey((k) => k + 1);
+      setToast(editing ? 'Updated successfully' : 'Added successfully');
       fetchProject();
     });
   };
@@ -409,6 +420,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         return;
       }
       setDeleting(null);
+      setToast('Deleted successfully');
       fetchProject();
     } catch {
       alert('Failed to delete — check your connection');
@@ -680,11 +692,11 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
 
         <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 sm:grid-cols-3 xl:grid-cols-6">
           <SummaryCard label="Owner Direct" value={formatCurrency(stats.directCost)} icon={Receipt} />
-          <SummaryCard label="Received" value={formatCurrency(received)} tone="success" icon={Wallet} />
+          <SummaryCard label="Owner Payments Received" value={formatCurrency(received)} tone="success" icon={Wallet} />
           <SummaryCard label="Construction Cost" value={formatCurrency(constructionCost)} tone="danger" icon={Users} />
           <SummaryCard label="Commission Paid" value={formatCurrency(commissionPaid)} tone={commissionPaid > 0 ? 'info' : 'neutral'} icon={Percent} />
           <SummaryCard label="Liabilities" value={formatCurrency(liabilities)} tone={liabilities > 0 ? 'warning' : 'neutral'} valueTone={liabilities > 0 ? 'warning' : 'neutral'} icon={FileText} />
-          <SummaryCard label="Balance" value={formatCurrency(Math.abs(balanceInHand))} tone={balanceInHand >= 0 ? 'success' : 'danger'} valueTone={balanceInHand >= 0 ? 'success' : 'danger'} icon={Package} />
+          <SummaryCard label="Balance in Hand" value={formatCurrency(Math.abs(balanceInHand))} tone={balanceInHand >= 0 ? 'success' : 'danger'} valueTone={balanceInHand >= 0 ? 'success' : 'danger'} icon={Package} />
         </div>
 
         {editingProject && (
@@ -1143,6 +1155,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       </Card>
 
       {/* Delete confirmations — rendered outside backdrop-filter elements to avoid Chrome fixed-positioning bug */}
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
       {pendingDuplicate && (
         <DuplicateConfirm
           title={pendingDuplicate.message}

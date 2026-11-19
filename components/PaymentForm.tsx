@@ -26,7 +26,7 @@ export interface PaymentFormInput {
 interface PaymentFormProps {
   initial?: PaymentFormInput | null;
   showType?: boolean;
-  onSubmit: (data: PaymentFormData) => void;
+  onSubmit: (data: PaymentFormData) => void | Promise<void>;
   onCancel?: () => void;
 }
 
@@ -37,20 +37,27 @@ export function PaymentForm({ initial, showType = false, onSubmit, onCancel }: P
   );
   const [type, setType] = useState<PaymentType>(initial?.type ?? 'Labour');
   const [description, setDescription] = useState<string>(initial?.description ?? '');
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: PaymentFormData = showType
-      ? { amount: Number(amount), date, type: type as PaymentType, description }
-      : { amount: Number(amount), date };
-    onSubmit(payload);
+    if (saving) return;
+    setSaving(true);
+    try {
+      const payload: PaymentFormData = showType
+        ? { amount: Number(amount), date, type: type as PaymentType, description }
+        : { amount: Number(amount), date };
+      await onSubmit(payload);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="glass-strong space-y-4 p-4 sm:p-5">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Input type="date" label="Date" value={date} onChange={(e) => setDate(e.target.value)} required />
-        <Input type="number" label="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+        <Input type="number" label="Amount" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         {showType && (
           <Select label="Type" value={type} onChange={(e) => setType(e.target.value as PaymentType)}>
             <option value="Labour">Labour</option>
@@ -64,9 +71,10 @@ export function PaymentForm({ initial, showType = false, onSubmit, onCancel }: P
       <div className="flex gap-2">
         <button
           type="submit"
-          className="min-h-[44px] rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand-500/20 transition-all hover:bg-brand-700"
+          disabled={saving}
+          className="min-h-[44px] rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand-500/20 transition-all hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {initial ? 'Update' : 'Add'}
+          {saving ? 'Saving…' : initial ? 'Update' : 'Add'}
         </button>
         {onCancel && (
           <button
