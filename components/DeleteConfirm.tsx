@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from './ui/Button';
 import { AlertTriangle, X } from 'lucide-react';
 
@@ -7,9 +8,14 @@ interface DeleteConfirmProps {
   title: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** When set, the user must type this exact text to enable the Delete button. */
+  requireTyping?: string;
 }
 
-export function DeleteConfirm({ title, onConfirm, onCancel }: DeleteConfirmProps) {
+export function DeleteConfirm({ title, onConfirm, onCancel, requireTyping }: DeleteConfirmProps) {
+  const [typed, setTyped] = useState('');
+  const canConfirm = !requireTyping || typed.trim() === requireTyping;
+
   return (
     <>
       {/* Backdrop */}
@@ -35,8 +41,20 @@ export function DeleteConfirm({ title, onConfirm, onCancel }: DeleteConfirmProps
               <X className="h-4 w-4" />
             </button>
           </div>
+          {requireTyping && (
+            <div className="mt-3">
+              <input
+                type="text"
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                placeholder={`Type "${requireTyping}" to confirm`}
+                className="w-full rounded-xl border border-red-200 bg-red-50/40 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                autoFocus
+              />
+            </div>
+          )}
           <div className="mt-3 flex gap-3">
-            <Button variant="danger" onClick={onConfirm} className="flex-1 h-10 text-sm">
+            <Button variant="danger" onClick={onConfirm} disabled={!canConfirm} className="flex-1 h-10 text-sm">
               Delete
             </Button>
             <Button variant="outline" onClick={onCancel} className="flex-1 h-10 text-sm">

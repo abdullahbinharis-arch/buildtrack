@@ -726,7 +726,20 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       {/* Tabs */}
       <Card className="mt-6 overflow-hidden p-0">
         <div className="bg-white/40 px-3 pt-3 pb-1 sm:px-4">
-          <TabNav tabs={TABS} active={activeTab} onChange={setActiveTab} />
+          <TabNav
+            tabs={TABS}
+            active={activeTab}
+            onChange={setActiveTab}
+            counts={{
+              'All Transactions': allTransactions.length,
+              'Payment Received': project.owner_payments.length,
+              'Owner Direct Payments': project.owner_direct_payments.length,
+              'Subcontractor Payments': project.subcontractor_payments.length,
+              'Material Expenses': project.material_expenses.length,
+              'Misc Expenses': project.miscellaneous_expenses.length,
+              'Commission Payout': project.commission_payouts.length,
+            }}
+          />
         </div>
 
         <div className="p-4 sm:p-5">
@@ -1170,6 +1183,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       {deleting?.type === 'project' && (
         <DeleteConfirm
           title="Are you sure you want to delete this project and all its records?"
+          requireTyping={project.name}
           onConfirm={handleDeleteProject}
           onCancel={() => setDeleting(null)}
         />
