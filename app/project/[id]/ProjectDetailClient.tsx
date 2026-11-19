@@ -35,6 +35,8 @@ import {
   Archive,
   ArchiveRestore,
   CheckCircle2,
+  CalendarDays,
+  X,
 } from 'lucide-react';
 
 const TABS = ['All Transactions', 'Payment Received', 'Owner Direct Payments', 'Subcontractor Payments', 'Material Expenses', 'Misc Expenses', 'Commission Payout'];
@@ -707,31 +709,44 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         </div>
 
         {/* As-of date filter — recomputes the summary cards using only transactions up to the chosen date */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-5">
-          <label htmlFor="as-of-date" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Balance as of
-          </label>
-          <input
-            id="as-of-date"
-            type="date"
-            value={asOfDate}
-            onChange={(e) => setAsOfDate(e.target.value)}
-            className="min-h-[36px] rounded-lg border border-white/80 bg-white/60 px-2.5 py-1.5 text-sm text-slate-700 shadow-sm ring-1 ring-white/70 backdrop-blur-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
-          />
-          {asOfDate && (
-            <button
-              onClick={() => setAsOfDate('')}
-              className="min-h-[36px] rounded-lg px-2.5 text-xs font-semibold text-brand-600 transition-colors hover:bg-white/60"
-            >
-              Clear
-            </button>
-          )}
-          {asOfDate && (
-            <span className="rounded-full bg-brand-100/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-white/60">
+        <div className="mt-4 flex justify-end sm:mt-5">
+          <div
+            className={`flex items-center gap-2 rounded-xl px-3 py-1.5 shadow-sm ring-1 backdrop-blur-sm transition-colors ${
+              asOfDate
+                ? 'border border-brand-200/80 bg-brand-50/70 ring-brand-200/60'
+                : 'border border-white/80 bg-white/50 ring-white/70 hover:bg-white/70'
+            }`}
+          >
+            <CalendarDays className={`h-4 w-4 shrink-0 ${asOfDate ? 'text-brand-600' : 'text-slate-400'}`} />
+            <label htmlFor="as-of-date" className={`text-xs font-semibold ${asOfDate ? 'text-brand-700' : 'text-slate-500'}`}>
+              As of
+            </label>
+            <input
+              id="as-of-date"
+              type="date"
+              value={asOfDate}
+              onChange={(e) => setAsOfDate(e.target.value)}
+              className="min-h-[32px] rounded-lg border border-white/80 bg-white/70 px-2 py-1 text-sm text-slate-700 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+            />
+            {asOfDate && (
+              <button
+                onClick={() => setAsOfDate('')}
+                aria-label="Clear as-of date"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-brand-500 transition-colors hover:bg-brand-100/80 hover:text-brand-700"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {asOfDate && (
+          <div className="mt-2 flex justify-end">
+            <span className="rounded-full bg-brand-600 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm shadow-brand-500/25">
               Showing figures as of {formatDate(asOfDate)}
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 xl:grid-cols-6">
           <SummaryCard label="Owner Direct" value={formatCurrency(stats.directCost)} icon={Receipt} />
